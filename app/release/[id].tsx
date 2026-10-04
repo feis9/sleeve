@@ -5,13 +5,14 @@ import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from '
 
 import { Chip } from '@/components/chip';
 import { Cover } from '@/components/cover';
+import { PressingMap } from '@/components/pressing-map';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReviewCard } from '@/components/review-card';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
-import { flagFor, getRelease, reviewsFor } from '@/data/mock';
+import { getRelease, reviewsFor } from '@/data/mock';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
@@ -138,16 +139,8 @@ export default function ReleaseScreen() {
         </View>
       )}
 
-      <SectionHeader title="Origen del prensado" />
-      <View style={[styles.card, styles.origin]}>
-        <Text style={styles.flag}>{flagFor(release.country)}</Text>
-        <View>
-          <Text style={styles.originCountry}>{release.country}</Text>
-          <Text style={styles.muted}>
-            {release.label} · {release.year}
-          </Text>
-        </View>
-      </View>
+      <SectionHeader title="País de la edición" />
+      <PressingMap release={release} />
 
       <SectionHeader title="Tracklist" />
       <View style={styles.card}>
@@ -253,19 +246,6 @@ const createStyles = (colors: Palette) =>
     },
     link: {
       color: colors.primary,
-      fontWeight: '600',
-    },
-    origin: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    flag: {
-      fontSize: 36,
-    },
-    originCountry: {
-      color: colors.text,
-      fontSize: fontSize.md,
       fontWeight: '600',
     },
     track: {

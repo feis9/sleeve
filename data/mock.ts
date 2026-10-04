@@ -1,3 +1,4 @@
+import { getCountry } from '@/data/countries';
 import type { Credential, Release, Review, User } from '@/types';
 
 // Datos de ejemplo hasta que exista la API (Express + Prisma).
@@ -275,16 +276,6 @@ export const reviews: Review[] = [
   },
 ];
 
-const flags: Record<string, string> = {
-  Argentina: '🇦🇷',
-  UK: '🇬🇧',
-  US: '🇺🇸',
-  Europe: '🇪🇺',
-  France: '🇫🇷',
-  Germany: '🇩🇪',
-  Japan: '🇯🇵',
-};
-
 export function getRelease(id: string) {
   return releases.find((r) => r.id === id);
 }
@@ -314,5 +305,5 @@ export function releasesByBarcode(barcode: string) {
 }
 
 export function flagFor(country: string) {
-  return flags[country] ?? '🏳️';
+  return getCountry(country)?.flag ?? '🏳️';
 }
