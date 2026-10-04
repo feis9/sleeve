@@ -42,7 +42,7 @@ function ReviewForm({ visible, releaseTitle, initialRating = 0, initialBody = ''
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
-      {/* KeyboardAvoidingView (núcleo de React Native, NO visto en clase): en iOS el teclado tapaba "Publicar". */}
+      {/* KeyboardAvoidingView: en iOS el teclado tapaba el botón "Publicar". */}
       <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.sheet}>
           <Text style={styles.title}>{texts.reviewForm.title}</Text>

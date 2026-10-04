@@ -1,50 +1,80 @@
-# Welcome to your Expo app 👋
+# Sleeve
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Red social para coleccionistas de vinilos: escaneás el código de barras de un disco, identificás la edición exacta, registrás dónde lo encontraste y compartís reseñas de ese prensado con otros coleccionistas.
 
-## Get started
+Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Entrega: Sprint 1, front-end.
 
-1. Install dependencies
+## Funcionalidades
 
-   ```bash
-   npm install
-   ```
+- **Escaneo real del código de barras** con la cámara (EAN-13 y UPC-A). Si un código corresponde a varias ediciones, la app muestra todas para elegir la propia.
+- **Registro del hallazgo con GPS**: al agregar un disco se guarda dónde y cuándo lo encontraste ("Encontrado en San Telmo, CABA").
+- **Mapa por edición**: el detalle de cada disco muestra el país de esa edición.
+- **Colección personal** guardada en el teléfono, separada por usuario.
+- **Reseñas por prensado**, de 1 a 5 estrellas, y **ranking** de coleccionistas.
+- **Login** con email o usuario y contraseña, con la sesión guardada en el dispositivo.
+- **Validaciones** en el login, en la carga manual de códigos (incluye el dígito verificador) y en las reseñas.
+- **Idioma** castellano / inglés y **tema** claro / oscuro / según el sistema, desde Ajustes.
 
-2. Start the app
+## Componentes nativos
 
-   ```bash
-   npx expo start
-   ```
+| Componente | Librería | Uso en la app |
+| --- | --- | --- |
+| Cámara | `expo-camera` | Lectura del código de barras de la funda para identificar la edición. |
+| GPS / geolocalización | `expo-location` | Registro de dónde se encontró cada disco al agregarlo a la colección. |
 
-In the output, you'll find options to open the app in a
+## Tecnologías
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Expo SDK 57 · React Native · TypeScript · Expo Router · React Context · AsyncStorage · react-native-maps.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+En este sprint no hay backend: los discos, usuarios y reseñas de ejemplo están en `data/mock.ts`. En la versión final los datos de cada edición se obtendrán de la Discogs API.
 
-## Get a fresh project
+## Cómo correrla
 
-When you're ready, run:
+Requisitos: Node.js y la app **Expo Go** en el teléfono (la cámara y el GPS necesitan un dispositivo físico).
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Escaneá el QR con Expo Go (el teléfono y la computadora tienen que estar en la misma red Wi-Fi).
 
-## Learn more
+### Cuentas de prueba
 
-To learn more about developing your project with Expo, look at the following resources:
+Todas usan la contraseña `vinilo123`:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Usuario | Email |
+| --- | --- |
+| `lucaf` | luca@sleeve.app |
+| `mica.spins` | mica@sleeve.app |
+| `tomas_crate` | tomas@sleeve.app |
+| `sofi33rpm` | sofi@sleeve.app |
+| `juanjazz` | juan@sleeve.app |
 
-## Join the community
+### Códigos de barras para probar
 
-Join our community of developers creating universal apps.
+También se pueden ingresar a mano desde Buscar → Código.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Disco | Código | Ediciones |
+| --- | --- | --- |
+| The Rolling Stones · Sticky Fingers | `0602508773143` | 1 |
+| AC/DC · Back In Black | `696998020719` | 3 |
+| Art Blakey & The Jazz Messengers · Moanin' | `8436542011112` | 1 |
+| Alice In Chains · Jar Of Flies | `196588003714` | 2 |
+| Pink Floyd · The Dark Side Of The Moon | `5099902894119` | 2 |
+
+## Estructura
+
+```
+app/            Pantallas y navegación (Expo Router): tabs, escáner, detalle, perfil, ajustes
+components/     Componentes reutilizables (mapa, tarjetas, botones, login, modal de reseña)
+context/        Estado global: ajustes (idioma y tema), sesión, colección y reseñas
+constants/      Paleta de colores, espaciados y textos en castellano e inglés
+data/           Datos de ejemplo y tabla de países
+utils/          Ubicación (GPS) y validaciones
+```
+
+## Equipo
+
+- Luca Faccennini
+- Juan Cruz Gonzalez Montes

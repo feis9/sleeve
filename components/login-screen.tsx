@@ -36,8 +36,8 @@ export function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* KeyboardAvoidingView (núcleo de React Native, NO visto en clase): al abrir el teclado achica
-          el área visible para que los campos suban y no queden tapados. */}
+      {/* KeyboardAvoidingView: al abrir el teclado achica el área visible para que los campos
+          suban y no queden tapados. */}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
