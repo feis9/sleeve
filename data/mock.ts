@@ -156,6 +156,32 @@ export const releases: Release[] = [
       { position: 'B2', title: 'How To Disappear Completely', duration: '5:56' },
     ],
   },
+  {
+    // Discogs r15527003. Discogs no indica país; figura "Pressed By – MPO" (planta en Francia).
+    id: 'r-sticky-fingers',
+    title: 'Sticky Fingers',
+    artist: 'The Rolling Stones',
+    year: 2020,
+    country: 'France',
+    label: 'Rolling Stones Records',
+    format: 'LP, Album, Reissue, 180g',
+    genre: 'Rock',
+    barcode: '0602508773143',
+    coverColor: '#3E5C7A',
+    discogsRating: 4.5,
+    tracklist: [
+      { position: 'A1', title: 'Brown Sugar', duration: '3:49' },
+      { position: 'A2', title: 'Sway', duration: '3:51' },
+      { position: 'A3', title: 'Wild Horses', duration: '5:42' },
+      { position: 'A4', title: "Can't You Hear Me Knocking", duration: '7:14' },
+      { position: 'A5', title: 'You Gotta Move', duration: '2:32' },
+      { position: 'B1', title: 'Bitch', duration: '3:36' },
+      { position: 'B2', title: 'I Got The Blues', duration: '3:52' },
+      { position: 'B3', title: 'Sister Morphine', duration: '5:31' },
+      { position: 'B4', title: 'Dead Flowers', duration: '4:03' },
+      { position: 'B5', title: 'Moonlight Mile', duration: '5:56' },
+    ],
+  },
 ];
 
 export const users: User[] = [
@@ -244,6 +270,7 @@ const flags: Record<string, string> = {
   UK: '🇬🇧',
   US: '🇺🇸',
   Europe: '🇪🇺',
+  France: '🇫🇷',
   Germany: '🇩🇪',
   Japan: '🇯🇵',
 };
