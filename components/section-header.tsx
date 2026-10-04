@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, fontSize, spacing } from '@/constants/theme';
+import { fontSize, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 
 type Props = {
   title: string;
@@ -9,6 +11,9 @@ type Props = {
 };
 
 export function SectionHeader({ title, actionLabel, onAction }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.row}>
       <Text style={styles.title}>{title}</Text>
@@ -21,22 +26,23 @@ export function SectionHeader({ title, actionLabel, onAction }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  action: {
-    color: colors.accent,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      marginTop: spacing.xl,
+      marginBottom: spacing.md,
+    },
+    title: {
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+    },
+    action: {
+      color: colors.primary,
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+    },
+  });

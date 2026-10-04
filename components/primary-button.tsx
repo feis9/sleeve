@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 
 type Props = {
   label: string;
@@ -11,8 +13,11 @@ type Props = {
 };
 
 export function PrimaryButton({ label, onPress, variant = 'solid', icon }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const solid = variant === 'solid';
-  const textColor = solid ? colors.onAccent : colors.text;
+  const textColor = solid ? colors.onPrimary : colors.text;
 
   return (
     <Pressable
@@ -28,29 +33,30 @@ export function PrimaryButton({ label, onPress, variant = 'solid', icon }: Props
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md + 2,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.md,
-  },
-  solid: {
-    backgroundColor: colors.accent,
-  },
-  outline: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  label: {
-    fontSize: fontSize.base,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      paddingVertical: spacing.md + 2,
+      paddingHorizontal: spacing.xl,
+      borderRadius: radius.md,
+    },
+    solid: {
+      backgroundColor: colors.primary,
+    },
+    outline: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+    label: {
+      fontSize: fontSize.base,
+      fontWeight: '700',
+    },
+  });

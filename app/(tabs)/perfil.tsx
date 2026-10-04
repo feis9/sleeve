@@ -1,21 +1,40 @@
-import { StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useMemo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProfileView } from '@/components/profile-view';
-import { colors } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { ME_ID } from '@/data/mock';
 
 export default function PerfilScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.topBar}>
+        <Pressable onPress={() => router.push('/ajustes')} hitSlop={12} accessibilityLabel="Ajustes">
+          <Ionicons name="settings-outline" size={24} color={colors.text} />
+        </Pressable>
+      </View>
       <ProfileView userId={ME_ID} />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+    },
+  });

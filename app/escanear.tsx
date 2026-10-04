@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, useMemo } from 'react';
 import { Animated, Easing, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Cover } from '@/components/cover';
 import { PrimaryButton } from '@/components/primary-button';
-import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { flagFor, releasesByBarcode } from '@/data/mock';
 import type { Release } from '@/types';
 
@@ -17,6 +18,9 @@ const BARCODE_TYPES = ['ean13', 'upc_a', 'ean8', 'upc_e'] as const;
 type Lectura = { codigo: string; candidatos: Release[] };
 
 export default function EscanearScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   // [estado del permiso (null mientras se consulta), función para pedirlo]
   const [permiso, pedirPermiso] = useCameraPermissions();
   const [lectura, setLectura] = useState<Lectura | null>(null);
@@ -85,13 +89,13 @@ export default function EscanearScreen() {
       <SafeAreaView style={styles.overlay} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="close" size={30} color={colors.text} />
+            <Ionicons name="close" size={30} color={CAMERA_TEXT} />
           </Pressable>
         </View>
 
         <View style={styles.center}>
           <Marco />
-          <Text style={styles.hint}>Apuntá al código de barras del disco</Text>
+          <Text style={[styles.hint, styles.cameraHint]}>Apuntá al código de barras del disco</Text>
         </View>
 
         <View style={styles.actions}>
@@ -140,8 +144,11 @@ export default function EscanearScreen() {
 }
 
 function Contenedor({ children }: { children: ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.permisoScreen}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="close" size={30} color={colors.text} />
@@ -154,6 +161,9 @@ function Contenedor({ children }: { children: ReactNode }) {
 
 // Marco guía con una línea que recorre el código de arriba abajo (Animated.loop).
 function Marco() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   // useState con inicializador: el Animated.Value se crea una sola vez y no se lee una ref durante el render.
   const [avance] = useState(() => new Animated.Value(0));
 
@@ -181,121 +191,133 @@ function Marco() {
   );
 }
 
+// Sobre la imagen de la cámara el texto va siempre en blanco, sin importar el modo.
+const CAMERA_TEXT = '#FFFFFF';
 const FRAME_WIDTH = 280;
 const FRAME_HEIGHT = 170;
 const CORNER = 28;
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  overlay: {
-    flex: 1,
-  },
-  topBar: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xl,
-  },
-  frame: {
-    width: FRAME_WIDTH,
-    height: FRAME_HEIGHT,
-  },
-  corner: {
-    position: 'absolute',
-    width: CORNER,
-    height: CORNER,
-    borderColor: colors.accent,
-  },
-  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
-  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
-  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
-  laser: {
-    position: 'absolute',
-    top: 0,
-    left: spacing.md,
-    right: spacing.md,
-    height: 2,
-    backgroundColor: colors.accent,
-    opacity: 0.8,
-  },
-  hint: {
-    color: colors.text,
-    fontSize: fontSize.base,
-    textAlign: 'center',
-  },
-  actions: {
-    padding: spacing.lg,
-  },
-  permiso: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.lg,
-    padding: spacing.xl,
-  },
-  permisoTitulo: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  permisoTexto: {
-    color: colors.muted,
-    fontSize: fontSize.base,
-    textAlign: 'center',
-  },
-  sheetOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.md,
-  },
-  sheetTitle: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  sheetSubtitle: {
-    color: colors.muted,
-    fontSize: fontSize.sm,
-    marginTop: -spacing.sm,
-  },
-  candidate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceAlt,
-  },
-  candidateInfo: {
-    flex: 1,
-  },
-  candidateTitle: {
-    color: colors.text,
-    fontSize: fontSize.base,
-    fontWeight: '600',
-  },
-  candidateMeta: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: '#000000',
+    },
+    overlay: {
+      flex: 1,
+    },
+    permisoScreen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    cameraHint: {
+      color: CAMERA_TEXT,
+      textShadowColor: 'rgba(0,0,0,0.6)',
+      textShadowRadius: 4,
+    },
+    topBar: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+    },
+    center: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xl,
+    },
+    frame: {
+      width: FRAME_WIDTH,
+      height: FRAME_HEIGHT,
+    },
+    corner: {
+      position: 'absolute',
+      width: CORNER,
+      height: CORNER,
+      borderColor: colors.accent,
+    },
+    topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
+    topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
+    bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
+    bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
+    laser: {
+      position: 'absolute',
+      top: 0,
+      left: spacing.md,
+      right: spacing.md,
+      height: 2,
+      backgroundColor: colors.accent,
+      opacity: 0.8,
+    },
+    hint: {
+      color: colors.text,
+      fontSize: fontSize.base,
+      textAlign: 'center',
+    },
+    actions: {
+      padding: spacing.lg,
+    },
+    permiso: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.lg,
+      padding: spacing.xl,
+    },
+    permisoTitulo: {
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+    },
+    permisoTexto: {
+      color: colors.muted,
+      fontSize: fontSize.base,
+      textAlign: 'center',
+    },
+    sheetOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.lg,
+      borderTopRightRadius: radius.lg,
+      padding: spacing.lg,
+      paddingBottom: spacing.xxl,
+      gap: spacing.md,
+    },
+    sheetTitle: {
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+    },
+    sheetSubtitle: {
+      color: colors.muted,
+      fontSize: fontSize.sm,
+      marginTop: -spacing.sm,
+    },
+    candidate: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      padding: spacing.sm,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceAlt,
+    },
+    candidateInfo: {
+      flex: 1,
+    },
+    candidateTitle: {
+      color: colors.text,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
+    candidateMeta: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+    },
+  });

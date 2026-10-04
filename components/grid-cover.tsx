@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, useWindowDimensions } from 'react-native';
 
 import { Cover } from '@/components/cover';
-import { colors, fontSize, spacing } from '@/constants/theme';
+import { fontSize, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import type { Release } from '@/types';
 
 export const GRID_COLUMNS = 3;
@@ -16,6 +18,9 @@ export function useGridItemSize() {
 }
 
 export function GridCover({ release, size }: { release: Release; size: number }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Pressable
       style={{ width: size }}
@@ -31,15 +36,16 @@ export function GridCover({ release, size }: { release: Release; size: number })
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    marginTop: spacing.xs,
-    color: colors.text,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-  artist: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    title: {
+      marginTop: spacing.xs,
+      color: colors.text,
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+    },
+    artist: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+    },
+  });

@@ -1,9 +1,14 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import type { User } from '@/types';
 
 export function Avatar({ user, size = 40 }: { user: User; size?: number }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const initials = user.name
     .split(' ')
     .map((part) => part[0])
@@ -22,13 +27,14 @@ export function Avatar({ user, size = 40 }: { user: User; size?: number }) {
   );
 }
 
-const styles = StyleSheet.create({
-  avatar: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initials: {
-    color: colors.onAccent,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    avatar: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    initials: {
+      color: colors.onAccent,
+      fontWeight: '700',
+    },
+  });

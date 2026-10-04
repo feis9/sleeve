@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/chip';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReleaseRow } from '@/components/release-row';
-import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { releases } from '@/data/mock';
 import type { Release } from '@/types';
 
@@ -31,6 +32,9 @@ function coincide(release: Release, query: string, filtro: Filtro) {
 }
 
 export default function BuscarScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [query, setQuery] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todo');
 
@@ -100,53 +104,54 @@ export default function BuscarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  top: {
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  title: {
-    color: colors.text,
-    fontSize: fontSize.xl,
-    fontWeight: '800',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    color: colors.text,
-    fontSize: fontSize.base,
-  },
-  chips: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  empty: {
-    alignItems: 'center',
-    gap: spacing.lg,
-    marginTop: spacing.xxl,
-  },
-  emptyText: {
-    color: colors.muted,
-    fontSize: fontSize.base,
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    top: {
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    title: {
+      color: colors.text,
+      fontSize: fontSize.xl,
+      fontWeight: '800',
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    input: {
+      flex: 1,
+      paddingVertical: spacing.md,
+      color: colors.text,
+      fontSize: fontSize.base,
+    },
+    chips: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    list: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    empty: {
+      alignItems: 'center',
+      gap: spacing.lg,
+      marginTop: spacing.xxl,
+    },
+    emptyText: {
+      color: colors.muted,
+      fontSize: fontSize.base,
+      textAlign: 'center',
+      marginTop: spacing.lg,
+    },
+  });

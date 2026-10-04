@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Tabs } from 'expo-router';
 import { StyleSheet, View, type ColorValue } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -13,19 +15,24 @@ function tabIcon(name: IconName) {
 }
 
 function ScanTabIcon() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.scanButton}>
-      <Ionicons name="barcode-outline" size={26} color={colors.onAccent} />
+      <Ionicons name="barcode-outline" size={26} color={colors.onPrimary} />
     </View>
   );
 }
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}>
@@ -33,7 +40,7 @@ export default function TabLayout() {
       <Tabs.Screen name="buscar" options={{ title: 'Buscar', tabBarIcon: tabIcon('search') }} />
       <Tabs.Screen
         name="escanear-tab"
-        options={{ title: '', tabBarIcon: ScanTabIcon }}
+        options={{ title: '', tabBarIcon: () => <ScanTabIcon /> }}
         listeners={{
           // No es una pantalla: abre el scanner como modal a pantalla completa.
           tabPress: (e) => {
@@ -48,14 +55,15 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  scanButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    scanButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+  });

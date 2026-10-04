@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
-import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { getRelease, getUser, ME_ID } from '@/data/mock';
 import type { Review } from '@/types';
 
@@ -13,6 +15,9 @@ type Props = {
 };
 
 export function ReviewCard({ review, showRelease = false }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const user = getUser(review.userId);
   const release = getRelease(review.releaseId);
   if (!user || !release) return null;
@@ -40,36 +45,37 @@ export function ReviewCard({ review, showRelease = false }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  author: {
-    flex: 1,
-    color: colors.text,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-  stars: {
-    color: colors.accent,
-    fontSize: fontSize.sm,
-  },
-  body: {
-    color: colors.text,
-    fontSize: fontSize.base,
-    lineHeight: 21,
-  },
-  date: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    author: {
+      flex: 1,
+      color: colors.text,
+      fontSize: fontSize.sm,
+      fontWeight: '600',
+    },
+    stars: {
+      color: colors.primary,
+      fontSize: fontSize.sm,
+    },
+    body: {
+      color: colors.text,
+      fontSize: fontSize.base,
+      lineHeight: 21,
+    },
+    date: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+    },
+  });

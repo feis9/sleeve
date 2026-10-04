@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -6,11 +7,15 @@ import { Cover } from '@/components/cover';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReviewCard } from '@/components/review-card';
 import { SectionHeader } from '@/components/section-header';
-import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
 import { flagFor, getRelease, reviewsFor } from '@/data/mock';
 
 function RatingBox({ label, value, caption }: { label: string; value: string; caption: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.ratingBox}>
       <Text style={styles.ratingLabel}>{label}</Text>
@@ -21,6 +26,9 @@ function RatingBox({ label, value, caption }: { label: string; value: string; ca
 }
 
 export default function ReleaseScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const { has, toggle } = useCollection();
 
@@ -106,104 +114,105 @@ export default function ReleaseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  notFound: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.bg,
-  },
-  titleBlock: {
-    marginTop: spacing.lg,
-    gap: spacing.xs,
-  },
-  title: {
-    color: colors.text,
-    fontSize: fontSize.xl,
-    fontWeight: '800',
-  },
-  artist: {
-    color: colors.accent,
-    fontSize: fontSize.md,
-    fontWeight: '600',
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginVertical: spacing.lg,
-  },
-  ratings: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  ratingBox: {
-    flex: 1,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-  },
-  ratingLabel: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  ratingValue: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    marginVertical: 2,
-  },
-  ratingCaption: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  origin: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  flag: {
-    fontSize: 36,
-  },
-  originCountry: {
-    color: colors.text,
-    fontSize: fontSize.md,
-    fontWeight: '600',
-  },
-  track: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  trackPosition: {
-    width: 28,
-    color: colors.muted,
-    fontSize: fontSize.sm,
-  },
-  trackTitle: {
-    flex: 1,
-    color: colors.text,
-    fontSize: fontSize.base,
-  },
-  muted: {
-    color: colors.muted,
-    fontSize: fontSize.sm,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    notFound: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.bg,
+    },
+    titleBlock: {
+      marginTop: spacing.lg,
+      gap: spacing.xs,
+    },
+    title: {
+      color: colors.text,
+      fontSize: fontSize.xl,
+      fontWeight: '800',
+    },
+    artist: {
+      color: colors.primary,
+      fontSize: fontSize.md,
+      fontWeight: '600',
+    },
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginVertical: spacing.lg,
+    },
+    ratings: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    ratingBox: {
+      flex: 1,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+    },
+    ratingLabel: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    ratingValue: {
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+      marginVertical: 2,
+    },
+    ratingCaption: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+    },
+    origin: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    flag: {
+      fontSize: 36,
+    },
+    originCountry: {
+      color: colors.text,
+      fontSize: fontSize.md,
+      fontWeight: '600',
+    },
+    track: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    trackPosition: {
+      width: 28,
+      color: colors.muted,
+      fontSize: fontSize.sm,
+    },
+    trackTitle: {
+      flex: 1,
+      color: colors.text,
+      fontSize: fontSize.base,
+    },
+    muted: {
+      color: colors.muted,
+      fontSize: fontSize.sm,
+    },
+  });

@@ -1,12 +1,17 @@
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Cover } from '@/components/cover';
-import { colors, fontSize, spacing } from '@/constants/theme';
+import { fontSize, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import type { Release } from '@/types';
 
 export function ReleaseRow({ release }: { release: Release }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
@@ -28,31 +33,32 @@ export function ReleaseRow({ release }: { release: Release }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  info: {
-    flex: 1,
-    gap: 2,
-  },
-  title: {
-    color: colors.text,
-    fontSize: fontSize.base,
-    fontWeight: '600',
-  },
-  artist: {
-    color: colors.text,
-    fontSize: fontSize.sm,
-  },
-  meta: {
-    color: colors.muted,
-    fontSize: fontSize.xs,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    info: {
+      flex: 1,
+      gap: 2,
+    },
+    title: {
+      color: colors.text,
+      fontSize: fontSize.base,
+      fontWeight: '600',
+    },
+    artist: {
+      color: colors.text,
+      fontSize: fontSize.sm,
+    },
+    meta: {
+      color: colors.muted,
+      fontSize: fontSize.xs,
+    },
+  });

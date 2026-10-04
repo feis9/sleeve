@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
@@ -6,7 +6,8 @@ import { Chip } from '@/components/chip';
 import { GRID_COLUMNS, GRID_GAP, GRID_PADDING, GridCover, useGridItemSize } from '@/components/grid-cover';
 import { ReviewCard } from '@/components/review-card';
 import { Stat } from '@/components/stat';
-import { colors, fontSize, spacing } from '@/constants/theme';
+import { fontSize, spacing, type Palette } from '@/constants/theme';
+import { useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
 import { getRelease, getUser, ME_ID, reviewsBy } from '@/data/mock';
 import type { Release } from '@/types';
@@ -15,6 +16,9 @@ type Tab = 'coleccion' | 'resenas';
 
 // Se usa en la tab Perfil (tu perfil) y en usuario/[id] (perfil público).
 export function ProfileView({ userId }: { userId: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const { ids } = useCollection();
   const ranking = useRanking();
   const itemSize = useGridItemSize();
@@ -80,39 +84,40 @@ export function ProfileView({ userId }: { userId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    padding: GRID_PADDING,
-    gap: spacing.lg,
-  },
-  header: {
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    marginTop: spacing.sm,
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  username: {
-    color: colors.muted,
-    fontSize: fontSize.sm,
-  },
-  stats: {
-    flexDirection: 'row',
-    alignSelf: 'stretch',
-    marginVertical: spacing.lg,
-  },
-  tabs: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignSelf: 'flex-start',
-  },
-  empty: {
-    color: colors.muted,
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    list: {
+      padding: GRID_PADDING,
+      gap: spacing.lg,
+    },
+    header: {
+      alignItems: 'center',
+      gap: spacing.xs,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      marginTop: spacing.sm,
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '700',
+    },
+    username: {
+      color: colors.muted,
+      fontSize: fontSize.sm,
+    },
+    stats: {
+      flexDirection: 'row',
+      alignSelf: 'stretch',
+      marginVertical: spacing.lg,
+    },
+    tabs: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      alignSelf: 'flex-start',
+    },
+    empty: {
+      color: colors.muted,
+      textAlign: 'center',
+      marginTop: spacing.xl,
+    },
+  });
