@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { useTheme } from '@/context/settings';
+import { validateIdentifier, validatePassword } from '@/utils/validation';
 
 // No es una ruta: el layout raíz la muestra cuando no hay sesión (render condicional,
 // el mismo patrón que el RootNavigator del ejercicio de navegación).
@@ -16,13 +17,17 @@ export function LoginScreen() {
   const { login } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  // Los errores aparecen recién después del primer intento, y se recalculan mientras el usuario corrige.
+  const [intentado, setIntentado] = useState(false);
+  // Para saltar del usuario a la contraseña con el botón "siguiente" del teclado.
+  const passwordRef = useRef<TextInput>(null);
+
+  const errorIdentifier = intentado ? validateIdentifier(identifier) : null;
+  const errorPassword = intentado ? validatePassword(password) : null;
 
   function ingresar() {
-    // Validación mínima; las validaciones de formato completas llegan en la T10.
-    if (!identifier.trim() || !password) {
-      Alert.alert('Faltan datos', 'Completá tu email o usuario y tu contraseña.');
-      return;
-    }
+    setIntentado(true);
+    if (validateIdentifier(identifier) || validatePassword(password)) return;
     if (!login(identifier, password)) {
       Alert.alert('No pudimos ingresar', 'El usuario o la contraseña no son correctos.');
     }
@@ -30,48 +35,57 @@ export function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.brand}>
-          <Ionicons name="disc" size={64} color={colors.primary} />
-          <Text style={styles.logo}>Sleeve</Text>
-          <Text style={styles.tagline}>Tu colección de vinilos, edición por edición.</Text>
-        </View>
+      {/* KeyboardAvoidingView (núcleo de React Native, NO visto en clase): al abrir el teclado achica
+          el área visible para que los campos suban y no queden tapados. */}
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <View style={styles.brand}>
+            <Ionicons name="disc" size={64} color={colors.primary} />
+            <Text style={styles.logo}>Sleeve</Text>
+            <Text style={styles.tagline}>Tu colección de vinilos, edición por edición.</Text>
+          </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Email o usuario</Text>
-          <TextInput
-            style={styles.input}
-            value={identifier}
-            onChangeText={setIdentifier}
-            placeholder="luca@sleeve.app o lucaf"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="username"
-            textContentType="username"
-            returnKeyType="next"
-          />
+          <View style={styles.form}>
+            <Text style={styles.label}>Email o usuario</Text>
+            <TextInput
+              style={[styles.input, errorIdentifier && styles.inputError]}
+              value={identifier}
+              onChangeText={setIdentifier}
+              placeholder="luca@sleeve.app o lucaf"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="username"
+              textContentType="username"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              submitBehavior="submit"
+            />
+            {errorIdentifier && <Text style={styles.error}>{errorIdentifier}</Text>}
 
-          <Text style={styles.label}>Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Tu contraseña"
-            placeholderTextColor={colors.muted}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="password"
-            textContentType="password"
-            returnKeyType="go"
-            onSubmitEditing={ingresar}
-          />
+            <Text style={styles.label}>Contraseña</Text>
+            <TextInput
+              ref={passwordRef}
+              style={[styles.input, errorPassword && styles.inputError]}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Tu contraseña"
+              placeholderTextColor={colors.muted}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={ingresar}
+            />
+            {errorPassword && <Text style={styles.error}>{errorPassword}</Text>}
 
-          <PrimaryButton label="Ingresar" icon="log-in-outline" onPress={ingresar} />
-        </View>
+            <PrimaryButton label="Ingresar" icon="log-in-outline" onPress={ingresar} />
+          </View>
 
-        <Text style={styles.demo}>Cuenta de prueba: lucaf · vinilo123</Text>
-      </ScrollView>
+          <Text style={styles.demo}>Cuenta de prueba: lucaf · vinilo123</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -81,6 +95,9 @@ const createStyles = (colors: Palette) =>
     safe: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    flex: {
+      flex: 1,
     },
     content: {
       flexGrow: 1,
@@ -121,6 +138,15 @@ const createStyles = (colors: Palette) =>
       paddingVertical: spacing.md,
       color: colors.text,
       fontSize: fontSize.base,
+      marginBottom: spacing.sm,
+    },
+    inputError: {
+      borderColor: colors.primary,
+    },
+    error: {
+      color: colors.primary,
+      fontSize: fontSize.sm,
+      marginTop: -spacing.xs,
       marginBottom: spacing.sm,
     },
     demo: {

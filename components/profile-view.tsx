@@ -10,7 +10,8 @@ import { fontSize, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
-import { getRelease, getUser, reviewsBy } from '@/data/mock';
+import { useReviews } from '@/context/reviews';
+import { getRelease, getUser } from '@/data/mock';
 import type { Release } from '@/types';
 
 type Tab = 'coleccion' | 'resenas';
@@ -19,6 +20,7 @@ type Tab = 'coleccion' | 'resenas';
 export function ProfileView({ userId }: { userId: string }) {
   const { colors } = useTheme();
   const me = useCurrentUser();
+  const { reviewsBy } = useReviews();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { ids } = useCollection();

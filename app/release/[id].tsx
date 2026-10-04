@@ -8,11 +8,13 @@ import { Cover } from '@/components/cover';
 import { PressingMap } from '@/components/pressing-map';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReviewCard } from '@/components/review-card';
+import { ReviewModal } from '@/components/review-modal';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
-import { getRelease, reviewsFor } from '@/data/mock';
+import { useReviews } from '@/context/reviews';
+import { getRelease } from '@/data/mock';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
@@ -45,6 +47,8 @@ export default function ReleaseScreen() {
   const { has, add, remove, findFor, saveFind } = useCollection();
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
+  const { reviewsFor, myReviewFor, saveReview } = useReviews();
+  const [resenando, setResenando] = useState(false);
 
   const release = getRelease(id);
   if (!release) {
@@ -62,6 +66,7 @@ export default function ReleaseScreen() {
       : '-';
   const enColeccion = has(release.id);
   const hallazgo = findFor(release.id);
+  const miResena = myReviewFor(release.id);
 
   // Escanear → identificar → registrar dónde. El disco se agrega al instante y la ubicación llega después.
   async function agregar(id: string) {
@@ -155,12 +160,28 @@ export default function ReleaseScreen() {
         ))}
       </View>
 
-      <SectionHeader title="Reseñas" />
+      <SectionHeader
+        title="Reseñas"
+        actionLabel={miResena ? 'Editar mi reseña' : 'Escribir reseña'}
+        onAction={() => setResenando(true)}
+      />
       {releaseReviews.length === 0 ? (
         <Text style={styles.muted}>Nadie reseñó este prensado todavía.</Text>
       ) : (
         releaseReviews.map((review) => <ReviewCard key={review.id} review={review} />)
       )}
+
+      <ReviewModal
+        visible={resenando}
+        releaseTitle={`${release.title} · ${release.artist}`}
+        initialRating={miResena?.rating}
+        initialBody={miResena?.body}
+        onCancel={() => setResenando(false)}
+        onSubmit={(rating, body) => {
+          saveReview(release.id, rating, body);
+          setResenando(false);
+        }}
+      />
     </ScrollView>
   );
 }

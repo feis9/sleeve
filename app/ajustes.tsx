@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -17,13 +16,10 @@ const TEMAS: { key: ThemePreference; label: string }[] = [
 export default function AjustesScreen() {
   const { colors, themePreference, setThemePreference } = useAppSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Solo cerramos la sesión: el layout raíz desmonta el Stack y muestra el login. No navegamos antes
+  // (router.dismissAll encola la acción y, cuando se procesa, el Stack ya no existe: POP_TO_TOP sin navegador).
   const { user, logout } = useAuth();
 
-  function cerrarSesion() {
-    // Cerramos las pantallas abiertas para que el próximo login arranque en Inicio y no en Ajustes.
-    if (router.canDismiss()) router.dismissAll();
-    logout();
-  }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -45,7 +41,7 @@ export default function AjustesScreen() {
       <View style={styles.card}>
         <Text style={styles.label}>Cuenta</Text>
         <Text style={styles.help}>Sesión iniciada como @{user?.username}</Text>
-        <PrimaryButton label="Cerrar sesión" icon="log-out-outline" variant="outline" onPress={cerrarSesion} />
+        <PrimaryButton label="Cerrar sesión" icon="log-out-outline" variant="outline" onPress={logout} />
       </View>
     </ScrollView>
   );

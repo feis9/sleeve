@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { LoginScreen } from '@/components/login-screen';
 import { AuthProvider, useAuth } from '@/context/auth';
 import { CollectionProvider } from '@/context/collection';
+import { ReviewsProvider } from '@/context/reviews';
 import { AppSettingsProvider, useAppSettings } from '@/context/settings';
 
 export const unstable_settings = {
@@ -16,7 +17,9 @@ export default function RootLayout() {
     <AppSettingsProvider>
       <AuthProvider>
         <CollectionProvider>
-          <ThemedStack />
+          <ReviewsProvider>
+            <ThemedStack />
+          </ReviewsProvider>
         </CollectionProvider>
       </AuthProvider>
     </AppSettingsProvider>
