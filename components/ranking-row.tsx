@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
-import { ME_ID } from '@/data/mock';
+import { useCurrentUser } from '@/context/auth';
 import type { User } from '@/types';
 
 type Props = {
@@ -18,7 +18,8 @@ export function RankingRow({ position, user, count }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const isMe = user.id === ME_ID;
+  const me = useCurrentUser();
+  const isMe = user.id === me.id;
 
   function abrirPerfil() {
     if (isMe) router.navigate('/perfil');

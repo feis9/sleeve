@@ -9,7 +9,8 @@ import { Stat } from '@/components/stat';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
-import { getRelease, getUser, ME_ID, reviewsBy } from '@/data/mock';
+import { useCurrentUser } from '@/context/auth';
+import { getRelease, getUser, reviewsBy } from '@/data/mock';
 import type { Release } from '@/types';
 
 type Tab = 'coleccion' | 'resenas';
@@ -17,6 +18,7 @@ type Tab = 'coleccion' | 'resenas';
 // Se usa en la tab Perfil (tu perfil) y en usuario/[id] (perfil público).
 export function ProfileView({ userId }: { userId: string }) {
   const { colors } = useTheme();
+  const me = useCurrentUser();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { ids } = useCollection();
@@ -29,7 +31,7 @@ export function ProfileView({ userId }: { userId: string }) {
     return <Text style={styles.empty}>No encontramos este usuario.</Text>;
   }
 
-  const isMe = userId === ME_ID;
+  const isMe = userId === me.id;
   const collection = (isMe ? ids : user.collection)
     .map((id) => getRelease(id))
     .filter((r): r is Release => r !== undefined);

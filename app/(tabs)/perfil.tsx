@@ -7,10 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProfileView } from '@/components/profile-view';
 import { spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
-import { ME_ID } from '@/data/mock';
+import { useCurrentUser } from '@/context/auth';
 
 export default function PerfilScreen() {
   const { colors } = useTheme();
+  const me = useCurrentUser();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
@@ -20,7 +21,7 @@ export default function PerfilScreen() {
           <Ionicons name="settings-outline" size={24} color={colors.text} />
         </Pressable>
       </View>
-      <ProfileView userId={ME_ID} />
+      <ProfileView userId={me.id} />
     </SafeAreaView>
   );
 }

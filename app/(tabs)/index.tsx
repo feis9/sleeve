@@ -11,14 +11,15 @@ import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import { useRanking } from '@/context/collection';
-import { getUser, ME_ID, releases } from '@/data/mock';
+import { useCurrentUser } from '@/context/auth';
+import { releases } from '@/data/mock';
 
 export default function InicioScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const ranking = useRanking();
-  const me = getUser(ME_ID)!;
+  const me = useCurrentUser();
   const recientes = releases.slice(0, 6);
 
   return (

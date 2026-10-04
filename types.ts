@@ -35,3 +35,8 @@ export type Review = {
   body: string;
   createdAt: string;
 };
+export type Credential = {
+  userId: string;
+  email: string;
+  password: string;
+};

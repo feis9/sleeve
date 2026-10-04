@@ -5,7 +5,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
-import { getRelease, getUser, ME_ID } from '@/data/mock';
+import { useCurrentUser } from '@/context/auth';
+import { getRelease, getUser } from '@/data/mock';
 import type { Review } from '@/types';
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 
 export function ReviewCard({ review, showRelease = false }: Props) {
   const { colors } = useTheme();
+  const me = useCurrentUser();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const user = getUser(review.userId);
@@ -26,7 +28,7 @@ export function ReviewCard({ review, showRelease = false }: Props) {
 
   function abrir() {
     if (showRelease) router.push({ pathname: '/release/[id]', params: { id: release!.id } });
-    else if (user!.id === ME_ID) router.navigate('/perfil');
+    else if (user!.id === me.id) router.navigate('/perfil');
     else router.push({ pathname: '/usuario/[id]', params: { id: user!.id } });
   }
 

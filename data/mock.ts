@@ -1,4 +1,4 @@
-import type { Release, Review, User } from '@/types';
+import type { Credential, Release, Review, User } from '@/types';
 
 // Datos de ejemplo hasta que exista la API (Express + Prisma).
 export const ME_ID = 'u-luca';
@@ -220,6 +220,16 @@ export const users: User[] = [
     avatarColor: '#3E7CB1',
     collection: ['r-kind-of-blue', 'r-ram'],
   },
+];
+
+// Credenciales de prueba para el login local (Sprint 1, sin backend).
+// Van en texto plano solo porque son datos simulados; con backend esto se valida en el servidor.
+export const credentials: Credential[] = [
+  { userId: ME_ID, email: 'luca@sleeve.app', password: 'vinilo123' },
+  { userId: 'u-mica', email: 'mica@sleeve.app', password: 'vinilo123' },
+  { userId: 'u-tomas', email: 'tomas@sleeve.app', password: 'vinilo123' },
+  { userId: 'u-sofi', email: 'sofi@sleeve.app', password: 'vinilo123' },
+  { userId: 'u-juan', email: 'juan@sleeve.app', password: 'vinilo123' },
 ];
 
 export const reviews: Review[] = [

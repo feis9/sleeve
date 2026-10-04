@@ -2,6 +2,8 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 
+import { LoginScreen } from '@/components/login-screen';
+import { AuthProvider, useAuth } from '@/context/auth';
 import { CollectionProvider } from '@/context/collection';
 import { AppSettingsProvider, useAppSettings } from '@/context/settings';
 
@@ -12,15 +14,18 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <AppSettingsProvider>
-      <CollectionProvider>
-        <ThemedStack />
-      </CollectionProvider>
+      <AuthProvider>
+        <CollectionProvider>
+          <ThemedStack />
+        </CollectionProvider>
+      </AuthProvider>
     </AppSettingsProvider>
   );
 }
 
 function ThemedStack() {
   const { colors, colorMode, isHydrated } = useAppSettings();
+  const { user, isHydrated: authHydrated } = useAuth();
 
   // El tema de React Navigation (fondos de pantalla, headers, tab bar) sale de la misma paleta.
   const navigationTheme = useMemo(() => {
@@ -38,8 +43,18 @@ function ThemedStack() {
     };
   }, [colorMode, colors]);
 
-  // Hasta leer las preferencias guardadas no dibujamos nada: evita un parpadeo de tema.
-  if (!isHydrated) return null;
+  // Hasta leer las preferencias y la sesión guardadas no dibujamos nada: evita parpadeos.
+  if (!isHydrated || !authHydrated) return null;
+
+  // Sin sesión se muestra el login; con sesión, la app. Al cerrar sesión se vuelve acá solo.
+  if (!user) {
+    return (
+      <>
+        <LoginScreen />
+        <StatusBar style={colorMode === 'DARK' ? 'light' : 'dark'} />
+      </>
+    );
+  }
 
   return (
     <ThemeProvider value={navigationTheme}>
