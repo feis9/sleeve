@@ -26,6 +26,7 @@ export const countries: Record<string, Country> = {
   },
   France: { latitude: 46.6, longitude: 2.4, delta: 12, flag: '🇫🇷', nameEs: 'Francia', nameEn: 'France' },
   Germany: { latitude: 51.2, longitude: 10.4, delta: 10, flag: '🇩🇪', nameEs: 'Alemania', nameEn: 'Germany' },
+  Mexico: { latitude: 23.6, longitude: -102.5, delta: 22, flag: '🇲🇽', nameEs: 'México', nameEn: 'Mexico' },
   Japan: { latitude: 36.2, longitude: 138.3, delta: 16, flag: '🇯🇵', nameEs: 'Japón', nameEn: 'Japan' },
 };
 

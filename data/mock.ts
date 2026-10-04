@@ -18,6 +18,29 @@ const dsotmTracks = [
   { position: 'B5', title: 'Eclipse', duration: '2:04' },
 ];
 
+const backInBlackTracks = [
+  { position: 'A1', title: 'Hells Bells', duration: '5:09' },
+  { position: 'A2', title: 'Shoot To Thrill', duration: '5:14' },
+  { position: 'A3', title: 'What Do You Do For Money Honey', duration: '3:33' },
+  { position: 'A4', title: 'Givin The Dog A Bone', duration: '3:30' },
+  { position: 'A5', title: 'Let Me Put My Love Into You', duration: '4:12' },
+  { position: 'B1', title: 'Back In Black', duration: '4:13' },
+  { position: 'B2', title: 'You Shook Me All Night Long', duration: '3:28' },
+  { position: 'B3', title: 'Have A Drink On Me', duration: '3:57' },
+  { position: 'B4', title: 'Shake A Leg', duration: '4:03' },
+  { position: 'B5', title: "Rock And Roll Ain't Noise Pollution", duration: '4:12' },
+];
+
+const jarOfFliesTracks = [
+  { position: 'A1', title: 'Rotten Apple', duration: '6:56' },
+  { position: 'A2', title: 'Nutshell', duration: '4:16' },
+  { position: 'A3', title: 'I Stay Away', duration: '4:13' },
+  { position: 'A4', title: 'No Excuses', duration: '4:15' },
+  { position: 'B1', title: 'Whale & Wasp', duration: '2:35' },
+  { position: 'B2', title: "Don't Follow", duration: '4:21' },
+  { position: 'B3', title: 'Swing On This', duration: '4:01' },
+];
+
 export const releases: Release[] = [
   {
     id: 'r-dsotm-eu',
@@ -182,6 +205,107 @@ export const releases: Release[] = [
       { position: 'B4', title: 'Dead Flowers', duration: '4:03' },
       { position: 'B5', title: 'Moonlight Mile', duration: '5:56' },
     ],
+  },
+  // Back In Black: el mismo código (696998020719) está en 6 ediciones en Discogs. Cargamos 3 de plantas
+  // distintas para que el escáner muestre el panel "Elegí la que coincide con tu copia".
+  {
+    // Discogs r1517028. Pressed By: United Record Pressing (EE. UU.).
+    id: 'r-bib-2003-us',
+    title: 'Back In Black',
+    artist: 'AC/DC',
+    year: 2003,
+    country: 'US',
+    label: 'Columbia',
+    format: 'LP, Album, Reissue, 180g',
+    genre: 'Rock',
+    barcode: '696998020719',
+    coverColor: '#1C1C1C',
+    discogsRating: 4.6,
+    tracklist: backInBlackTracks,
+  },
+  {
+    // Discogs r8487517. País en Discogs: US; Pressed By: MPO.
+    id: 'r-bib-2015-mpo',
+    title: 'Back In Black',
+    artist: 'AC/DC',
+    year: 2015,
+    country: 'US',
+    label: 'Columbia',
+    format: 'LP, Album, Reissue, 180g (MPO)',
+    genre: 'Rock',
+    barcode: '696998020719',
+    coverColor: '#262626',
+    discogsRating: 4.6,
+    tracklist: backInBlackTracks,
+  },
+  {
+    // Discogs r35395852. Discogs no indica país; Pressed By: Vantiva, Guadalajara (México).
+    id: 'r-bib-2023-mx',
+    title: 'Back In Black',
+    artist: 'AC/DC',
+    year: 2023,
+    country: 'Mexico',
+    label: 'Columbia',
+    format: 'LP, Album, Reissue',
+    genre: 'Rock',
+    barcode: '696998020719',
+    coverColor: '#303030',
+    discogsRating: 4.4,
+    tracklist: backInBlackTracks,
+  },
+  {
+    // Discogs r4345204. Reedición europea de WaxTime (no es la edición de Blue Note).
+    id: 'r-moanin-2012-eu',
+    title: "Moanin'",
+    artist: 'Art Blakey & The Jazz Messengers',
+    year: 2012,
+    country: 'Europe',
+    label: 'WaxTime',
+    format: 'LP, Album, Reissue, 180g',
+    genre: 'Jazz',
+    barcode: '8436542011112',
+    coverColor: '#2E4A62',
+    discogsRating: 4.6,
+    tracklist: [
+      { position: 'A1', title: "Moanin'", duration: '9:34' },
+      { position: 'A2', title: 'Are You Real', duration: '4:50' },
+      { position: 'A3', title: 'Along Came Betty', duration: '6:11' },
+      { position: 'B1', title: 'The Drum Thunder Suite', duration: '7:35' },
+      { position: 'B2', title: 'Blues March', duration: '6:17' },
+      { position: 'B3', title: 'Come Rain Or Come Shine', duration: '5:47' },
+    ],
+  },
+  // Jar Of Flies: el código 196588003714 está en 2 ediciones (EE. UU. y la internacional).
+  {
+    // Discogs r30106898. Pressed By: United Record Pressing (EE. UU.).
+    id: 'r-jof-2024-us',
+    title: 'Jar Of Flies',
+    artist: 'Alice In Chains',
+    year: 2024,
+    country: 'US',
+    label: 'Columbia',
+    format: 'LP, EP, Reissue',
+    genre: 'Rock',
+    barcode: '196588003714',
+    coverColor: '#7A5C2A',
+    discogsRating: 4.7,
+    tracklist: jarOfFliesTracks,
+  },
+  {
+    // Discogs r30170624. País en Discogs: "Worldwide" (no ubicable en el mapa);
+    // Pressed By: Schallplattenfabrik Pallas (Alemania), así que usamos Germany.
+    id: 'r-jof-2024-de',
+    title: 'Jar Of Flies',
+    artist: 'Alice In Chains',
+    year: 2024,
+    country: 'Germany',
+    label: 'Columbia',
+    format: 'LP, EP, Reissue',
+    genre: 'Rock',
+    barcode: '196588003714',
+    coverColor: '#6B5226',
+    discogsRating: 4.8,
+    tracklist: jarOfFliesTracks,
   },
 ];
 
