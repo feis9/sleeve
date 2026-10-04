@@ -35,6 +35,16 @@ export type Review = {
   body: string;
   createdAt: string;
 };
+// Dónde y cuándo agregaste un disco a tu colección (GPS del teléfono).
+export type Find = {
+  latitude: number;
+  longitude: number;
+  // "San Telmo, Buenos Aires". null si no se pudo traducir la coordenada a un lugar.
+  place: string | null;
+  // ISO 8601
+  date: string;
+};
+
 export type Credential = {
   userId: string;
   email: string;
