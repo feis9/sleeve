@@ -11,7 +11,7 @@ import type { Release } from '@/types';
 // Mapa con el país de UNA edición. Se usa en el detalle, sin importar desde dónde se llegó
 // (escaneo, colección, colección ajena o búsqueda). En la versión final el país sale de la Discogs API.
 export function PressingMap({ release }: { release: Release }) {
-  const { colors, language } = useAppSettings();
+  const { colors, language, texts } = useAppSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const country = getCountry(release.country);
@@ -21,8 +21,8 @@ export function PressingMap({ release }: { release: Release }) {
       <View style={[styles.card, styles.unknown]}>
         <Ionicons name="earth-outline" size={28} color={colors.muted} />
         <View style={styles.unknownText}>
-          <Text style={styles.name}>Origen no disponible</Text>
-          <Text style={styles.muted}>No sabemos de qué país es esta edición.</Text>
+          <Text style={styles.name}>{texts.map.unknownTitle}</Text>
+          <Text style={styles.muted}>{texts.map.unknownText}</Text>
         </View>
       </View>
     );

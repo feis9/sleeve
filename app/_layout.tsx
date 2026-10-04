@@ -27,7 +27,7 @@ export default function RootLayout() {
 }
 
 function ThemedStack() {
-  const { colors, colorMode, isHydrated } = useAppSettings();
+  const { colors, colorMode, isHydrated, texts } = useAppSettings();
   const { user, isHydrated: authHydrated } = useAuth();
 
   // El tema de React Navigation (fondos de pantalla, headers, tab bar) sale de la misma paleta.
@@ -72,7 +72,7 @@ function ThemedStack() {
         <Stack.Screen name="escanear" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="release/[id]" options={{ title: '' }} />
         <Stack.Screen name="usuario/[id]" options={{ title: '' }} />
-        <Stack.Screen name="ajustes" options={{ title: 'Ajustes' }} />
+        <Stack.Screen name="ajustes" options={{ title: texts.settingsTitle }} />
       </Stack>
       <StatusBar style={colorMode === 'DARK' ? 'light' : 'dark'} />
     </ThemeProvider>

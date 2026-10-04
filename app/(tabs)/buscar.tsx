@@ -8,20 +8,15 @@ import { Chip } from '@/components/chip';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReleaseRow } from '@/components/release-row';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { releases, releasesByBarcode } from '@/data/mock';
 import type { Release } from '@/types';
 import { barcodeDigits, validateBarcode } from '@/utils/validation';
 
 type Filtro = 'todo' | 'artista' | 'album' | 'sello' | 'codigo';
 
-const FILTROS: { key: Filtro; label: string }[] = [
-  { key: 'todo', label: 'Todo' },
-  { key: 'artista', label: 'Artista' },
-  { key: 'album', label: 'Álbum' },
-  { key: 'sello', label: 'Sello' },
-  { key: 'codigo', label: 'Código' },
-];
+// El texto de cada filtro sale de texts.search.filters según el idioma.
+const FILTROS: Filtro[] = ['todo', 'artista', 'album', 'sello', 'codigo'];
 
 function coincide(release: Release, query: string, filtro: Exclude<Filtro, 'codigo'>) {
   const campos = {
@@ -35,6 +30,7 @@ function coincide(release: Release, query: string, filtro: Exclude<Filtro, 'codi
 
 export default function BuscarScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [query, setQuery] = useState('');
@@ -44,7 +40,7 @@ export default function BuscarScreen() {
 
   const modoCodigo = filtro === 'codigo';
   const q = query.trim().toLowerCase();
-  const errorCodigo = modoCodigo && q ? validateBarcode(query) : null;
+  const errorCodigo = modoCodigo && q ? validateBarcode(query, texts.validation) : null;
   const mostrarErrorCodigo = errorCodigo !== null && (codigoEnviado || barcodeDigits(query).length >= 12);
 
   let resultados: Release[] = [];
@@ -66,7 +62,7 @@ export default function BuscarScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.top}>
-        <Text style={styles.title}>Buscar</Text>
+        <Text style={styles.title}>{texts.search.title}</Text>
 
         <View style={[styles.searchBar, mostrarErrorCodigo && styles.searchBarError]}>
           <Ionicons name={modoCodigo ? 'barcode-outline' : 'search'} size={18} color={colors.muted} />
@@ -74,7 +70,7 @@ export default function BuscarScreen() {
             style={styles.input}
             value={query}
             onChangeText={cambiarQuery}
-            placeholder={modoCodigo ? 'Código de barras (12 o 13 dígitos)' : 'Artista, álbum o sello'}
+            placeholder={modoCodigo ? texts.search.placeholderCode : texts.search.placeholder}
             placeholderTextColor={colors.muted}
             autoCorrect={false}
             keyboardType={modoCodigo ? 'number-pad' : 'default'}
@@ -91,10 +87,10 @@ export default function BuscarScreen() {
         <View style={styles.chips}>
           {FILTROS.map((f) => (
             <Chip
-              key={f.key}
-              label={f.label}
-              active={filtro === f.key}
-              onPress={() => cambiarFiltro(f.key)}
+              key={f}
+              label={texts.search.filters[f]}
+              active={filtro === f}
+              onPress={() => cambiarFiltro(f)}
             />
           ))}
         </View>
@@ -112,17 +108,17 @@ export default function BuscarScreen() {
           q ? (
             mostrarErrorCodigo || (modoCodigo && errorCodigo) ? null : (
               <Text style={styles.emptyText}>
-                {modoCodigo ? 'No encontramos ediciones con ese código.' : `Sin resultados para “${query}”.`}
+                {modoCodigo ? texts.search.noCodeResults : texts.search.noResults(query)}
               </Text>
             )
           ) : (
             <View style={styles.empty}>
               <Ionicons name="disc-outline" size={56} color={colors.muted} />
               <Text style={styles.emptyText}>
-                Buscá por artista, álbum o sello. Si tenés el disco en la mano, escanealo.
+                {texts.search.emptyHint}
               </Text>
               <PrimaryButton
-                label="Escanear código"
+                label={texts.search.scanButton}
                 icon="barcode-outline"
                 onPress={() => router.push('/escanear')}
               />

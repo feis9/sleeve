@@ -7,7 +7,7 @@ import { GRID_COLUMNS, GRID_GAP, GRID_PADDING, GridCover, useGridItemSize } from
 import { ReviewCard } from '@/components/review-card';
 import { Stat } from '@/components/stat';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
 import { useReviews } from '@/context/reviews';
@@ -19,6 +19,7 @@ type Tab = 'coleccion' | 'resenas';
 // Se usa en la tab Perfil (tu perfil) y en usuario/[id] (perfil público).
 export function ProfileView({ userId }: { userId: string }) {
   const { colors } = useTheme();
+  const texts = useTexts();
   const me = useCurrentUser();
   const { reviewsBy } = useReviews();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -30,7 +31,7 @@ export function ProfileView({ userId }: { userId: string }) {
 
   const user = getUser(userId);
   if (!user) {
-    return <Text style={styles.empty}>No encontramos este usuario.</Text>;
+    return <Text style={styles.empty}>{texts.profile.notFound}</Text>;
   }
 
   const isMe = userId === me.id;
@@ -47,14 +48,14 @@ export function ProfileView({ userId }: { userId: string }) {
       <Text style={styles.username}>@{user.username}</Text>
 
       <View style={styles.stats}>
-        <Stat value={collection.length} label="Discos" />
-        <Stat value={userReviews.length} label="Reseñas" />
-        <Stat value={`#${position}`} label="Ranking" />
+        <Stat value={collection.length} label={texts.profile.records} />
+        <Stat value={userReviews.length} label={texts.profile.reviews} />
+        <Stat value={`#${position}`} label={texts.profile.ranking} />
       </View>
 
       <View style={styles.tabs}>
-        <Chip label="Colección" active={tab === 'coleccion'} onPress={() => setTab('coleccion')} />
-        <Chip label="Reseñas" active={tab === 'resenas'} onPress={() => setTab('resenas')} />
+        <Chip label={texts.profile.collectionTab} active={tab === 'coleccion'} onPress={() => setTab('coleccion')} />
+        <Chip label={texts.profile.reviewsTab} active={tab === 'resenas'} onPress={() => setTab('resenas')} />
       </View>
     </View>
   );
@@ -70,7 +71,7 @@ export function ProfileView({ userId }: { userId: string }) {
         columnWrapperStyle={{ gap: GRID_GAP }}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => <GridCover release={item} size={itemSize} />}
-        ListEmptyComponent={<Text style={styles.empty}>Todavía no hay discos.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{texts.profile.noRecords}</Text>}
       />
     );
   }
@@ -83,7 +84,7 @@ export function ProfileView({ userId }: { userId: string }) {
       ListHeaderComponent={header}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => <ReviewCard review={item} showRelease />}
-      ListEmptyComponent={<Text style={styles.empty}>Todavía no hay reseñas.</Text>}
+      ListEmptyComponent={<Text style={styles.empty}>{texts.profile.noReviews}</Text>}
     />
   );
 }

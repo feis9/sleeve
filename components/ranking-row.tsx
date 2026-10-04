@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { useCurrentUser } from '@/context/auth';
 import type { User } from '@/types';
 
@@ -16,6 +16,7 @@ type Props = {
 
 export function RankingRow({ position, user, count }: Props) {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const me = useCurrentUser();
@@ -32,11 +33,11 @@ export function RankingRow({ position, user, count }: Props) {
       <Avatar user={user} size={36} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
-          {isMe ? 'Vos' : user.name}
+          {isMe ? texts.profile.you : user.name}
         </Text>
         <Text style={styles.username}>@{user.username}</Text>
       </View>
-      <Text style={styles.count}>{count} discos</Text>
+      <Text style={styles.count}>{texts.profile.recordsCount(count)}</Text>
     </Pressable>
   );
 }

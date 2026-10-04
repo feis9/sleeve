@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Cover } from '@/components/cover';
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { flagFor, releasesByBarcode } from '@/data/mock';
 import type { Release } from '@/types';
 
@@ -19,6 +19,7 @@ type Lectura = { codigo: string; candidatos: Release[] };
 
 export default function EscanearScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // [estado del permiso (null mientras se consulta), función para pedirlo]
@@ -52,7 +53,7 @@ export default function EscanearScreen() {
   if (!permiso) {
     return (
       <Contenedor>
-        <Text style={styles.hint}>Consultando permiso de la cámara…</Text>
+        <Text style={styles.hint}>{texts.scanner.checkingPermission}</Text>
       </Contenedor>
     );
   }
@@ -62,16 +63,16 @@ export default function EscanearScreen() {
     return (
       <Contenedor>
         <Ionicons name="camera-outline" size={56} color={colors.muted} />
-        <Text style={styles.permisoTitulo}>Necesitamos la cámara</Text>
+        <Text style={styles.permisoTitulo}>{texts.scanner.permissionTitle}</Text>
         <Text style={styles.permisoTexto}>
-          Sleeve lee el código de barras de la funda para identificar la edición exacta de tu disco.
+          {texts.scanner.permissionText}
         </Text>
         {permiso.canAskAgain ? (
-          <PrimaryButton label="Dar permiso" icon="camera" onPress={pedirPermiso} />
+          <PrimaryButton label={texts.scanner.grantPermission} icon="camera" onPress={pedirPermiso} />
         ) : (
-          <PrimaryButton label="Abrir ajustes" icon="settings-outline" onPress={() => Linking.openSettings()} />
+          <PrimaryButton label={texts.scanner.openSettings} icon="settings-outline" onPress={() => Linking.openSettings()} />
         )}
-        <PrimaryButton label="Buscar manualmente" variant="outline" onPress={buscarManualmente} />
+        <PrimaryButton label={texts.scanner.searchManually} variant="outline" onPress={buscarManualmente} />
       </Contenedor>
     );
   }
@@ -95,11 +96,11 @@ export default function EscanearScreen() {
 
         <View style={styles.center}>
           <Marco />
-          <Text style={[styles.hint, styles.cameraHint]}>Apuntá al código de barras del disco</Text>
+          <Text style={[styles.hint, styles.cameraHint]}>{texts.scanner.aimHint}</Text>
         </View>
 
         <View style={styles.actions}>
-          <PrimaryButton label="Buscar manualmente" variant="outline" onPress={buscarManualmente} />
+          <PrimaryButton label={texts.scanner.searchManually} variant="outline" onPress={buscarManualmente} />
         </View>
       </SafeAreaView>
 
@@ -109,10 +110,9 @@ export default function EscanearScreen() {
             {lectura.candidatos.length > 0 ? (
               <>
                 <Text style={styles.sheetTitle}>
-                  Encontramos {lectura.candidatos.length}{' '}
-                  {lectura.candidatos.length === 1 ? 'edición' : 'ediciones'}
+                  {texts.scanner.found(lectura.candidatos.length)}
                 </Text>
-                <Text style={styles.sheetSubtitle}>Elegí la que coincide con tu copia</Text>
+                <Text style={styles.sheetSubtitle}>{texts.scanner.pickYours}</Text>
                 {lectura.candidatos.map((r) => (
                   <Pressable key={r.id} style={styles.candidate} onPress={() => elegir(r.id)}>
                     <Cover release={r} size={48} />
@@ -130,12 +130,12 @@ export default function EscanearScreen() {
               </>
             ) : (
               <>
-                <Text style={styles.sheetTitle}>No encontramos esta edición</Text>
-                <Text style={styles.sheetSubtitle}>Código leído: {lectura.codigo}</Text>
-                <PrimaryButton label="Buscar manualmente" icon="search" onPress={buscarManualmente} />
+                <Text style={styles.sheetTitle}>{texts.scanner.notFound}</Text>
+                <Text style={styles.sheetSubtitle}>{texts.scanner.codeRead(lectura.codigo)}</Text>
+                <PrimaryButton label={texts.scanner.searchManually} icon="search" onPress={buscarManualmente} />
               </>
             )}
-            <PrimaryButton label="Escanear otro" variant="outline" onPress={escanearOtro} />
+            <PrimaryButton label={texts.scanner.scanAnother} variant="outline" onPress={escanearOtro} />
           </View>
         </View>
       )}

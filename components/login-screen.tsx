@@ -6,13 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { validateIdentifier, validatePassword } from '@/utils/validation';
 
 // No es una ruta: el layout raíz la muestra cuando no hay sesión (render condicional,
 // el mismo patrón que el RootNavigator del ejercicio de navegación).
 export function LoginScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { login } = useAuth();
   const [identifier, setIdentifier] = useState('');
@@ -22,14 +23,14 @@ export function LoginScreen() {
   // Para saltar del usuario a la contraseña con el botón "siguiente" del teclado.
   const passwordRef = useRef<TextInput>(null);
 
-  const errorIdentifier = intentado ? validateIdentifier(identifier) : null;
-  const errorPassword = intentado ? validatePassword(password) : null;
+  const errorIdentifier = intentado ? validateIdentifier(identifier, texts.validation) : null;
+  const errorPassword = intentado ? validatePassword(password, texts.validation) : null;
 
   function ingresar() {
     setIntentado(true);
-    if (validateIdentifier(identifier) || validatePassword(password)) return;
+    if (validateIdentifier(identifier, texts.validation) || validatePassword(password, texts.validation)) return;
     if (!login(identifier, password)) {
-      Alert.alert('No pudimos ingresar', 'El usuario o la contraseña no son correctos.');
+      Alert.alert(texts.login.failedTitle, texts.login.failedText);
     }
   }
 
@@ -42,16 +43,16 @@ export function LoginScreen() {
           <View style={styles.brand}>
             <Ionicons name="disc" size={64} color={colors.primary} />
             <Text style={styles.logo}>Sleeve</Text>
-            <Text style={styles.tagline}>Tu colección de vinilos, edición por edición.</Text>
+            <Text style={styles.tagline}>{texts.login.tagline}</Text>
           </View>
 
           <View style={styles.form}>
-            <Text style={styles.label}>Email o usuario</Text>
+            <Text style={styles.label}>{texts.login.identifier}</Text>
             <TextInput
               style={[styles.input, errorIdentifier && styles.inputError]}
               value={identifier}
               onChangeText={setIdentifier}
-              placeholder="luca@sleeve.app o lucaf"
+              placeholder={texts.login.identifierPlaceholder}
               placeholderTextColor={colors.muted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -63,13 +64,13 @@ export function LoginScreen() {
             />
             {errorIdentifier && <Text style={styles.error}>{errorIdentifier}</Text>}
 
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={styles.label}>{texts.login.password}</Text>
             <TextInput
               ref={passwordRef}
               style={[styles.input, errorPassword && styles.inputError]}
               value={password}
               onChangeText={setPassword}
-              placeholder="Tu contraseña"
+              placeholder={texts.login.passwordPlaceholder}
               placeholderTextColor={colors.muted}
               secureTextEntry
               autoCapitalize="none"
@@ -80,10 +81,10 @@ export function LoginScreen() {
             />
             {errorPassword && <Text style={styles.error}>{errorPassword}</Text>}
 
-            <PrimaryButton label="Ingresar" icon="log-in-outline" onPress={ingresar} />
+            <PrimaryButton label={texts.login.submit} icon="log-in-outline" onPress={ingresar} />
           </View>
 
-          <Text style={styles.demo}>Cuenta de prueba: lucaf · vinilo123</Text>
+          <Text style={styles.demo}>{texts.login.demo}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

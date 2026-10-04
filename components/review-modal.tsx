@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, Tex
 
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { REVIEW_MAX, validateRating, validateReviewBody } from '@/utils/validation';
 
 type Props = {
@@ -25,17 +25,18 @@ export function ReviewModal(props: Props) {
 
 function ReviewForm({ visible, releaseTitle, initialRating = 0, initialBody = '', onCancel, onSubmit }: Props) {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [rating, setRating] = useState(initialRating);
   const [body, setBody] = useState(initialBody);
   const [intentado, setIntentado] = useState(false);
 
-  const errorRating = intentado ? validateRating(rating) : null;
-  const errorBody = intentado ? validateReviewBody(body) : null;
+  const errorRating = intentado ? validateRating(rating, texts.validation) : null;
+  const errorBody = intentado ? validateReviewBody(body, texts.validation) : null;
 
   function publicar() {
     setIntentado(true);
-    if (validateRating(rating) || validateReviewBody(body)) return;
+    if (validateRating(rating, texts.validation) || validateReviewBody(body, texts.validation)) return;
     onSubmit(rating, body);
   }
 
@@ -44,14 +45,14 @@ function ReviewForm({ visible, releaseTitle, initialRating = 0, initialBody = ''
       {/* KeyboardAvoidingView (núcleo de React Native, NO visto en clase): en iOS el teclado tapaba "Publicar". */}
       <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>Tu reseña</Text>
+          <Text style={styles.title}>{texts.reviewForm.title}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {releaseTitle}
           </Text>
 
           <View style={styles.stars}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRating(n)} hitSlop={6} accessibilityLabel={`${n} estrellas`}>
+              <Pressable key={n} onPress={() => setRating(n)} hitSlop={6} accessibilityLabel={texts.reviewForm.stars(n)}>
                 <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={34} color={colors.primary} />
               </Pressable>
             ))}
@@ -62,7 +63,7 @@ function ReviewForm({ visible, releaseTitle, initialRating = 0, initialBody = ''
             style={[styles.input, errorBody && styles.inputError]}
             value={body}
             onChangeText={setBody}
-            placeholder="¿Cómo suena tu copia? Prensado, ruido de superficie, edición…"
+            placeholder={texts.reviewForm.placeholder}
             placeholderTextColor={colors.muted}
             multiline
             maxLength={REVIEW_MAX}
@@ -75,8 +76,8 @@ function ReviewForm({ visible, releaseTitle, initialRating = 0, initialBody = ''
             </Text>
           </View>
 
-          <PrimaryButton label="Publicar" icon="send" onPress={publicar} />
-          <PrimaryButton label="Cancelar" variant="outline" onPress={onCancel} />
+          <PrimaryButton label={texts.reviewForm.publish} icon="send" onPress={publicar} />
+          <PrimaryButton label={texts.reviewForm.cancel} variant="outline" onPress={onCancel} />
         </View>
       </KeyboardAvoidingView>
     </Modal>

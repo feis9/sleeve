@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { useColorScheme } from 'react-native';
 
 import { getColors, type ColorMode, type Palette } from '@/constants/theme';
+import { t, type Texts } from '@/constants/translations';
 
 export type Language = 'ES' | 'EN';
 // 'SYSTEM' sigue el tema del teléfono (useColorScheme); 'LIGHT' y 'DARK' lo fijan.
@@ -15,6 +16,7 @@ type AppSettingsContextValue = {
   setThemePreference: (preference: ThemePreference) => void;
   colorMode: ColorMode;
   colors: Palette;
+  texts: Texts;
   isHydrated: boolean;
 };
 
@@ -59,10 +61,11 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const colorMode: ColorMode =
     themePreference === 'SYSTEM' ? (systemScheme === 'dark' ? 'DARK' : 'LIGHT') : themePreference;
   const colors = useMemo(() => getColors(colorMode), [colorMode]);
+  const texts = useMemo(() => t(language), [language]);
 
   const value = useMemo<AppSettingsContextValue>(
-    () => ({ language, setLanguage, themePreference, setThemePreference, colorMode, colors, isHydrated }),
-    [language, themePreference, colorMode, colors, isHydrated],
+    () => ({ language, setLanguage, themePreference, setThemePreference, colorMode, colors, texts, isHydrated }),
+    [language, themePreference, colorMode, colors, texts, isHydrated],
   );
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;
@@ -80,4 +83,9 @@ export function useAppSettings(): AppSettingsContextValue {
 export function useTheme() {
   const { colors, colorMode } = useAppSettings();
   return { colors, colorMode };
+}
+
+// Atajo para los componentes que solo necesitan los textos del idioma activo.
+export function useTexts(): Texts {
+  return useAppSettings().texts;
 }

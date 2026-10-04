@@ -14,29 +14,33 @@ import {
 } from '@/components/grid-cover';
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
 import { getRelease } from '@/data/mock';
 import type { Release } from '@/types';
 
+const ALL = '__ALL__';
+
 export default function ColeccionScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { ids } = useCollection();
   const itemSize = useGridItemSize();
-  const [genero, setGenero] = useState('Todos');
+  // ALL es una clave interna: el texto visible sale del idioma activo.
+  const [genero, setGenero] = useState(ALL);
 
   const discos = ids.map((id) => getRelease(id)).filter((r): r is Release => r !== undefined);
-  const generos = ['Todos', ...new Set(discos.map((d) => d.genre))];
-  const visibles = genero === 'Todos' ? discos : discos.filter((d) => d.genre === genero);
+  const generos = [ALL, ...new Set(discos.map((d) => d.genre))];
+  const visibles = genero === ALL ? discos : discos.filter((d) => d.genre === genero);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Mi colección</Text>
+        <Text style={styles.title}>{texts.collection.title}</Text>
         <Text style={styles.count}>
-          {discos.length} {discos.length === 1 ? 'disco' : 'discos'}
+          {texts.collection.count(discos.length)}
         </Text>
       </View>
 
@@ -47,7 +51,7 @@ export default function ColeccionScreen() {
           style={styles.chipsScroll}
           contentContainerStyle={styles.chips}>
           {generos.map((g) => (
-            <Chip key={g} label={g} active={genero === g} onPress={() => setGenero(g)} />
+            <Chip key={g} label={g === ALL ? texts.collection.allGenres : g} active={genero === g} onPress={() => setGenero(g)} />
           ))}
         </ScrollView>
       )}
@@ -62,9 +66,9 @@ export default function ColeccionScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="albums-outline" size={56} color={colors.muted} />
-            <Text style={styles.emptyText}>Tu colección está vacía. Escaneá tu primer disco.</Text>
+            <Text style={styles.emptyText}>{texts.collection.empty}</Text>
             <PrimaryButton
-              label="Escanear"
+              label={texts.collection.scanButton}
               icon="barcode-outline"
               onPress={() => router.push('/escanear')}
             />

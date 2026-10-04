@@ -4,7 +4,7 @@ import { router, Tabs } from 'expo-router';
 import { StyleSheet, View, type ColorValue } from 'react-native';
 
 import { type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -27,6 +27,7 @@ function ScanTabIcon() {
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const texts = useTexts();
 
   return (
     <Tabs
@@ -36,8 +37,8 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Inicio', tabBarIcon: tabIcon('home') }} />
-      <Tabs.Screen name="buscar" options={{ title: 'Buscar', tabBarIcon: tabIcon('search') }} />
+      <Tabs.Screen name="index" options={{ title: texts.tabs.home, tabBarIcon: tabIcon('home') }} />
+      <Tabs.Screen name="buscar" options={{ title: texts.tabs.search, tabBarIcon: tabIcon('search') }} />
       <Tabs.Screen
         name="escanear-tab"
         options={{ title: '', tabBarIcon: () => <ScanTabIcon /> }}
@@ -49,8 +50,8 @@ export default function TabLayout() {
           },
         }}
       />
-      <Tabs.Screen name="coleccion" options={{ title: 'Colección', tabBarIcon: tabIcon('albums') }} />
-      <Tabs.Screen name="perfil" options={{ title: 'Perfil', tabBarIcon: tabIcon('person') }} />
+      <Tabs.Screen name="coleccion" options={{ title: texts.tabs.collection, tabBarIcon: tabIcon('albums') }} />
+      <Tabs.Screen name="perfil" options={{ title: texts.tabs.profile, tabBarIcon: tabIcon('person') }} />
     </Tabs>
   );
 }

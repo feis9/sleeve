@@ -11,7 +11,7 @@ import { ReviewCard } from '@/components/review-card';
 import { ReviewModal } from '@/components/review-modal';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
 import { useReviews } from '@/context/reviews';
 import { getRelease } from '@/data/mock';
@@ -20,11 +20,6 @@ import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from 
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
 type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }>;
 
-const TEXTO_AVISO: Record<AvisoUbicacion['status'], string> = {
-  denied: 'Lo agregamos sin ubicación porque no diste permiso.',
-  'services-off': 'Lo agregamos sin ubicación: la ubicación del teléfono está apagada.',
-  error: 'Lo agregamos sin ubicación: no pudimos leer el GPS.',
-};
 
 function RatingBox({ label, value, caption }: { label: string; value: string; caption: string }) {
   const { colors } = useTheme();
@@ -41,6 +36,7 @@ function RatingBox({ label, value, caption }: { label: string; value: string; ca
 
 export default function ReleaseScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -54,7 +50,7 @@ export default function ReleaseScreen() {
   if (!release) {
     return (
       <View style={styles.notFound}>
-        <Text style={styles.muted}>No encontramos este disco.</Text>
+        <Text style={styles.muted}>{texts.release.notFound}</Text>
       </View>
     );
   }
@@ -101,16 +97,16 @@ export default function ReleaseScreen() {
       </View>
 
       <View style={styles.ratings}>
-        <RatingBox label="Discogs" value={release.discogsRating.toFixed(1)} caption="comunidad" />
+        <RatingBox label="Discogs" value={release.discogsRating.toFixed(1)} caption={texts.release.community} />
         <RatingBox
           label="Sleeve"
           value={sleeveRating}
-          caption={`${releaseReviews.length} ${releaseReviews.length === 1 ? 'reseña' : 'reseñas'}`}
+          caption={texts.release.reviewsCount(releaseReviews.length)}
         />
       </View>
 
       <PrimaryButton
-        label={enColeccion ? 'En tu colección' : 'Agregar a mi colección'}
+        label={enColeccion ? texts.release.inCollection : texts.release.addToCollection}
         icon={enColeccion ? 'checkmark' : 'add'}
         variant={enColeccion ? 'outline' : 'solid'}
         onPress={() => (enColeccion ? quitar(release.id) : agregar(release.id))}
@@ -119,14 +115,14 @@ export default function ReleaseScreen() {
       {enColeccion && ubicando && (
         <View style={styles.findRow}>
           <ActivityIndicator size="small" color={colors.muted} />
-          <Text style={styles.muted}>Registrando dónde lo encontraste…</Text>
+          <Text style={styles.muted}>{texts.release.locating}</Text>
         </View>
       )}
       {enColeccion && hallazgo && (
         <View style={styles.findRow}>
           <Ionicons name="location" size={16} color={colors.primary} />
           <Text style={styles.findText}>
-            Encontrado en {findPlaceLabel(hallazgo)} · {formatFindDate(hallazgo.date)}
+            {texts.release.foundAt(findPlaceLabel(hallazgo), formatFindDate(hallazgo.date))}
           </Text>
         </View>
       )}
@@ -134,20 +130,21 @@ export default function ReleaseScreen() {
         <View style={styles.findRow}>
           <Ionicons name="location-outline" size={16} color={colors.muted} />
           <Text style={[styles.findText, styles.muted]}>
-            {TEXTO_AVISO[aviso.status]}
+            {texts.release.findWarnings[aviso.status]}
             {aviso.status === 'denied' && !aviso.canAskAgain && (
               <Text style={styles.link} onPress={() => Linking.openSettings()}>
-                {' '}Abrir ajustes
+                {' '}
+                {texts.release.openSettings}
               </Text>
             )}
           </Text>
         </View>
       )}
 
-      <SectionHeader title="País de la edición" />
+      <SectionHeader title={texts.release.countrySection} />
       <PressingMap release={release} />
 
-      <SectionHeader title="Tracklist" />
+      <SectionHeader title={texts.release.tracklist} />
       <View style={styles.card}>
         {release.tracklist.map((track) => (
           <View key={track.position} style={styles.track}>
@@ -161,12 +158,12 @@ export default function ReleaseScreen() {
       </View>
 
       <SectionHeader
-        title="Reseñas"
-        actionLabel={miResena ? 'Editar mi reseña' : 'Escribir reseña'}
+        title={texts.release.reviews}
+        actionLabel={miResena ? texts.release.editReview : texts.release.writeReview}
         onAction={() => setResenando(true)}
       />
       {releaseReviews.length === 0 ? (
-        <Text style={styles.muted}>Nadie reseñó este prensado todavía.</Text>
+        <Text style={styles.muted}>{texts.release.noReviews}</Text>
       ) : (
         releaseReviews.map((review) => <ReviewCard key={review.id} review={review} />)
       )}

@@ -9,13 +9,14 @@ import { GridCover } from '@/components/grid-cover';
 import { RankingRow } from '@/components/ranking-row';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useTheme } from '@/context/settings';
+import { useTexts, useTheme } from '@/context/settings';
 import { useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
 import { releases } from '@/data/mock';
 
 export default function InicioScreen() {
   const { colors } = useTheme();
+  const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const ranking = useRanking();
@@ -35,13 +36,13 @@ export default function InicioScreen() {
         <Pressable style={styles.scanCard} onPress={() => router.push('/escanear')}>
           <Ionicons name="barcode-outline" size={36} color={colors.onPrimary} />
           <View style={styles.scanText}>
-            <Text style={styles.scanTitle}>Escaneá un disco</Text>
-            <Text style={styles.scanSubtitle}>Identificá el prensado exacto con el código de barras</Text>
+            <Text style={styles.scanTitle}>{texts.home.scanTitle}</Text>
+            <Text style={styles.scanSubtitle}>{texts.home.scanSubtitle}</Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color={colors.onPrimary} />
         </Pressable>
 
-        <SectionHeader title="Agregados recientemente" />
+        <SectionHeader title={texts.home.recent} />
         <FlatList
           horizontal
           data={recientes}
@@ -52,8 +53,8 @@ export default function InicioScreen() {
         />
 
         <SectionHeader
-          title="Top coleccionistas"
-          actionLabel="Ver mi perfil"
+          title={texts.home.topCollectors}
+          actionLabel={texts.home.seeMyProfile}
           onAction={() => router.navigate('/perfil')}
         />
         <View style={styles.ranking}>
