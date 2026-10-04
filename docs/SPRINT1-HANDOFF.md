@@ -1,6 +1,6 @@
 # Sleeve · Sprint 1 · Traspaso de trabajo
 
-Estado al 04/10/2026. Rama de trabajo: `front-entrega-1`. Entrega: **15/10/2026 18:00 (UTC-3)**, un único PDF con la URL pública del mockup y la URL pública del repositorio. Para aprobar hay que sacar **Bueno o más en cada criterio 3.1 a 3.5** de `Sprint 1 - Consignas.pdf`.
+Estado al 04/10/2026 (actualizado tras T7 y T8). Rama de trabajo: `front-entrega-1`. Entrega: **15/10/2026 18:00 (UTC-3)**, un único PDF con la URL pública del mockup y la URL pública del repositorio. Para aprobar hay que sacar **Bueno o más en cada criterio 3.1 a 3.5** de `Sprint 1 - Consignas.pdf`.
 
 ## 1. Reglas de trabajo (no negociables)
 
@@ -23,11 +23,11 @@ Estado al 04/10/2026. Rama de trabajo: `front-entrega-1`. Entrega: **15/10/2026 
 
 | Tema | Decisión |
 |---|---|
-| Componentes nativos (consigna 1.4) | **1) Cámara** con escaneo real de código de barras (hecho). **2) GPS** al agregar un disco a la colección: "Encontrado en San Telmo, CABA" (pendiente, T7). |
+| Componentes nativos (consigna 1.4) | **1) Cámara** con escaneo real de código de barras (hecho). **2) GPS** al agregar un disco a la colección: "Encontrado en San Telmo, CABA" (hecho, T7). |
 | Descartado | Biometría (el equipo usa login clásico). "Centrar en mi posición" en el mapa (se vería forzado: tu ubicación no tiene relación con dónde se prensó el disco). |
 | Login | Clásico: email **o** username + contraseña, datos simulados, sesión guardada en AsyncStorage. *Supuesto pendiente de confirmar con los docentes: login y validaciones con datos simulados son válidos para el sprint.* |
 | Colección | Una por usuario, persistida en el teléfono (`sleeve-collection-<userId>`). La primera vez arranca con la de `mock.ts`. |
-| Mapa (T8) | Muestra **un solo prensado a la vez**: el país de la edición abierta, en el detalle `release/[id]`. Mismo componente desde escaneo, colección, colección ajena o búsqueda. **No** hay mapa global ni filtros por origen. En la versión final el país saldrá de la Discogs API v2. |
+| Mapa (T8) | Hecho con `react-native-maps` (NO visto en clase; elegido por el equipo sobre la alternativa de imagen + `position: 'absolute'`). Muestra **un solo prensado a la vez**: el país de la edición abierta, en el detalle `release/[id]`. Mismo componente desde escaneo, colección, colección ajena o búsqueda. **No** hay mapa global ni filtros por origen. En la versión final el país saldrá de la Discogs API v2. |
 | País de Sticky Fingers | Discogs deja el país vacío; se usó **France** porque figura "Pressed By – MPO" (planta francesa). Aclararlo en el PDF como dato cargado a mano. |
 | Discogs API | NO vista en clase: en este sprint el código escaneado se resuelve contra `mock.ts` (`releasesByBarcode`). |
 | Paleta | "Etiqueta Roja" (abajo). Mismos HEX en PDF, mockup y app (si no coinciden, el criterio 3.2 cae a Bueno). |
@@ -56,13 +56,16 @@ Contraste texto/fondo: 16.6:1 (claro) y 16.4:1 (oscuro). `muted`, `primary` y `o
 app/_layout.tsx          AppSettingsProvider > AuthProvider > CollectionProvider > (Login | Stack)
 app/(tabs)/              Inicio, Buscar, Escanear (botón central, abre /escanear), Colección, Perfil
 app/escanear.tsx         Cámara real (expo-camera), permisos, panel de ediciones, "sin resultado"
-app/release/[id].tsx     Detalle de edición (acá va el mapa de la T8 y el "Encontrado en" de la T7)
+app/release/[id].tsx     Detalle de edición: "Encontrado en" (T7) y mapa del país (T8)
 app/usuario/[id].tsx     Perfil público
 app/ajustes.tsx          Tema (Claro/Oscuro/Sistema) y Cerrar sesión. Falta Idioma (T11)
 components/login-screen  Login (no es una ruta: el layout lo muestra si no hay sesión)
 context/settings.tsx     useAppSettings() / useTheme(): idioma, tema, colors (persistido)
 context/auth.tsx         useAuth() / useCurrentUser(): login, logout, sesión (persistido)
-context/collection.tsx   useCollection() / useRanking(): colección por usuario (persistida)
+context/collection.tsx   useCollection() / useRanking(): colección y hallazgos GPS por usuario (persistidos)
+utils/location.ts        getCurrentFind(): permiso → GPS → "Barrio, Ciudad" (T7)
+components/pressing-map  Tarjeta "País de la edición"; el MapView está en country-map(.web).tsx (T8)
+data/countries.ts        Coordenadas, zoom, bandera y nombre ES/EN por país (fuente de flagFor)
 constants/theme.ts       getColors(mode), spacing, radius, fontSize
 data/mock.ts             releases, users, credentials, reviews, releasesByBarcode, flagFor
 ```
@@ -91,10 +94,10 @@ data/mock.ts             releases, users, credentials, reviews, releasesByBarcod
 | 4 | T4 Escaneo real con cámara | ✅ commit `856d1dc` | 3.4 |
 | 5 | T5 Paleta, modo claro/oscuro, AppSettingsContext | ✅ `f91770e` | 3.2 |
 | 6 | T6 Login local + colección por usuario | ✅ `238cd23` | oral |
-| 7 | T7 GPS al agregar un disco ("Encontrado en…") | **Siguiente** | 3.4 |
-| 8 | T8 Mapa por edición | Pendiente | oral |
+| 7 | T7 GPS al agregar un disco ("Encontrado en…") | ✅ `038a5ab` | 3.4 |
+| 8 | T8 Mapa por edición | ✅ `cf29303` | oral |
 | 9 | T9 Mockup en Figma con URL pública | Pendiente (lo arma el compañero) | 3.3, 3.2, 3.5 |
-| 10 | T10 Validaciones | Pendiente | oral, 3.3 |
+| 10 | T10 Validaciones | **Siguiente** | oral, 3.3 |
 | 11 | T11 Idioma ES/EN | Pendiente | oral |
 | 12 | T12 Ícono y splash con el isologo; `AGENTS.md` dice v54 y el proyecto es v57 | Pendiente | 3.2 |
 | 13 | T13 Prueba completa en el teléfono + capturas (cámara, GPS, claro/oscuro, ES/EN) | Pendiente | 3.5 |
@@ -115,16 +118,18 @@ data/mock.ts             releases, users, credentials, reviews, releasesByBarcod
 
 ## 6. Pasos detallados de lo que sigue
 
-### T7 · GPS al agregar un disco (segundo componente nativo)
+### T7 · GPS al agregar un disco (segundo componente nativo) · ✅ hecho
 Respaldo: Visto en clase, Sensores_ReactNative_Expo.pdf (expo-location: `requestForegroundPermissionsAsync`, `getCurrentPositionAsync`, `reverseGeocodeAsync`; permisos en `app.json`) y `Sensores_para_alumnos/screens/Antipodas.tsx`.
-1. `npm install expo-location@~57.0.19` (rango de `bundledNativeModules.json`).
+1. `npm install expo-location@~57.0.20` (rango de `bundledNativeModules.json`).
 2. `app.json`, en `plugins`: `["expo-location", { "locationWhenInUsePermission": "Sleeve guarda dónde encontraste cada disco de tu colección." }]`.
 3. Datos: guardar por usuario `{ [releaseId]: { lat, lng, lugar, fecha } }` en AsyncStorage (por ejemplo `sleeve-finds-<userId>`), siguiendo el patrón de `context/collection.tsx` (se puede extender ese mismo context).
 4. Flujo: en `release/[id].tsx`, al tocar "Agregar a mi colección": pedir permiso → `getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })` → `reverseGeocodeAsync` → armar "Barrio, Ciudad". Si el permiso se niega o falla, **el disco se agrega igual, sin ubicación** (la ubicación es un plus, no puede bloquear la colección). Chequear `hasServicesEnabledAsync` como en Antipodas.
 5. Mostrar debajo del botón: "Encontrado en San Telmo, CABA · 05/10/2026". Al quitar el disco, borrar el hallazgo.
 6. Para el PDF (justificación técnica): lectura puntual (no `watchPositionAsync`) para cuidar batería; precisión `Balanced` alcanza para identificar una disquería; permiso solo en primer plano; cámara + GPS en un mismo flujo (escanear → identificar → registrar dónde).
 
-### T8 · Mapa por edición (`components/pressing-map.tsx`)
+### T8 · Mapa por edición (`components/pressing-map.tsx`) · ✅ hecho
+Implementado con `react-native-maps` 1.27.2. En Expo Go no necesita API key; un build propio de Android requiere `androidGoogleMapsApiKey` en el plugin de `app.json` (iOS usa Apple Maps sin key). En web el mapa no existe (`country-map.web.tsx` devuelve `null`) porque la librería no lo soporta.
+
 - Recibe `release: Release`; usa `country`, `label`, `year`, `format`.
 - `data/countries.ts`: `{ [country]: { lat, lng, delta, flag, nombreES, nombreEN } }` con los países del mock (Argentina, UK, US, Europe, Germany, Japan, France). Reemplaza al `flags` de `mock.ts` (una sola fuente de verdad; `flagFor` pasa a leer de ahí).
 - Marcador en el centroide aproximado del país; `"Europe"` se trata como región ("Edición europea"). Zoom inicial por país (`delta` de la tabla). Sin gestos de scroll para no pelear con el `ScrollView` del detalle.
