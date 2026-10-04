@@ -38,6 +38,14 @@
             "backgroundColor": "#0E0E0E"
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Sleeve usa la cámara para leer el código de barras de tus discos e identificar la edición exacta.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
       ]
     ],
     "experiments": {

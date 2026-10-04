@@ -264,8 +264,16 @@ export function reviewsBy(userId: string) {
   return reviews.filter((r) => r.userId === userId);
 }
 
+// Deja solo dígitos y unifica UPC-A con EAN-13: iOS suele leer un UPC-A (12 dígitos)
+// como EAN-13 con un 0 adelante, así que '0' + 12 dígitos y los 12 dígitos son el mismo código.
+export function normalizeBarcode(code: string) {
+  const digits = code.replace(/\D/g, '');
+  return digits.length === 13 && digits.startsWith('0') ? digits.slice(1) : digits;
+}
+
 export function releasesByBarcode(barcode: string) {
-  return releases.filter((r) => r.barcode === barcode);
+  const code = normalizeBarcode(barcode);
+  return releases.filter((r) => r.barcode !== undefined && normalizeBarcode(r.barcode) === code);
 }
 
 export function flagFor(country: string) {
