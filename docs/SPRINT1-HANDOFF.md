@@ -1,6 +1,6 @@
 # Sleeve · Sprint 1 · Traspaso de trabajo
 
-Estado al 04/10/2026 (actualizado tras T7 y T8). Rama de trabajo: `front-entrega-1`. Entrega: **15/10/2026 18:00 (UTC-3)**, un único PDF con la URL pública del mockup y la URL pública del repositorio. Para aprobar hay que sacar **Bueno o más en cada criterio 3.1 a 3.5** de `Sprint 1 - Consignas.pdf`.
+Estado al 04/10/2026 (actualizado tras T7, T8, T10, T11 y T12). Rama de trabajo: `front-entrega-1`. Entrega: **15/10/2026 18:00 (UTC-3)**, un único PDF con la URL pública del mockup y la URL pública del repositorio. Para aprobar hay que sacar **Bueno o más en cada criterio 3.1 a 3.5** de `Sprint 1 - Consignas.pdf`.
 
 ## 1. Reglas de trabajo (no negociables)
 
@@ -58,9 +58,13 @@ app/(tabs)/              Inicio, Buscar, Escanear (botón central, abre /escanea
 app/escanear.tsx         Cámara real (expo-camera), permisos, panel de ediciones, "sin resultado"
 app/release/[id].tsx     Detalle de edición: "Encontrado en" (T7) y mapa del país (T8)
 app/usuario/[id].tsx     Perfil público
-app/ajustes.tsx          Tema (Claro/Oscuro/Sistema) y Cerrar sesión. Falta Idioma (T11)
+app/ajustes.tsx          Idioma (ES/EN), Tema (Claro/Oscuro/Sistema) y Cerrar sesión
 components/login-screen  Login (no es una ruta: el layout lo muestra si no hay sesión)
-context/settings.tsx     useAppSettings() / useTheme(): idioma, tema, colors (persistido)
+context/settings.tsx     useAppSettings() / useTheme() / useTexts(): idioma, textos, tema, colors (persistido)
+context/reviews.tsx      useReviews(): reseñas de ejemplo + las escritas en el teléfono (persistidas)
+constants/translations.ts Textos ES/EN tipados (EN: Texts obliga a tener todas las claves)
+utils/validation.ts      Validaciones de login, código de barras (dígito verificador) y reseñas (T10)
+components/review-modal  Formulario de reseña en Modal (T10)
 context/auth.tsx         useAuth() / useCurrentUser(): login, logout, sesión (persistido)
 context/collection.tsx   useCollection() / useRanking(): colección y hallazgos GPS por usuario (persistidos)
 utils/location.ts        getCurrentFind(): permiso → GPS → "Barrio, Ciudad" (T7)
@@ -88,8 +92,8 @@ data/mock.ts             releases, users, credentials, reviews, releasesByBarcod
 
 | P | Tarea | Estado | Criterio |
 |---|---|---|---|
-| 1 | T1 Que la URL del repo muestre la app: hoy `main` es la plantilla de create-expo-app (SDK 54). Merge de `front-entrega-1` a `main` (PR) o cambiar la rama por defecto en GitHub | **Pendiente (decisión del equipo)** | 3.5, 1.5 |
-| 2 | T2 Branding: paleta (hecha), tipografía (sistema), **isologo** | Falta isologo | 3.2 |
+| 1 | T1 Que la URL del repo muestre la app: hoy `main` es la plantilla de create-expo-app (SDK 54). Merge de `front-entrega-1` a `main` (PR) o cambiar la rama por defecto en GitHub | **Siguiente (urgente)** | 3.5, 1.5 |
+| 2 | T2 Branding: paleta, tipografía (sistema), isologo (`assets/brand/`) | ✅ (falta corregir el color del disco oscuro en `lamina_branding_sleeve.pdf`: `#332E2A` → `#3A322E`) | 3.2 |
 | 3 | T3 Texto 1.1: problema, 2 arquetipos de usuario, diferencial vs Discogs, monetización (freemium/suscripción) | Pendiente | 3.1 |
 | 4 | T4 Escaneo real con cámara | ✅ commit `856d1dc` | 3.4 |
 | 5 | T5 Paleta, modo claro/oscuro, AppSettingsContext | ✅ `f91770e` | 3.2 |
@@ -97,9 +101,9 @@ data/mock.ts             releases, users, credentials, reviews, releasesByBarcod
 | 7 | T7 GPS al agregar un disco ("Encontrado en…") | ✅ `038a5ab` | 3.4 |
 | 8 | T8 Mapa por edición | ✅ `cf29303` | oral |
 | 9 | T9 Mockup en Figma con URL pública | Pendiente (lo arma el compañero) | 3.3, 3.2, 3.5 |
-| 10 | T10 Validaciones | **Siguiente** | oral, 3.3 |
-| 11 | T11 Idioma ES/EN | Pendiente | oral |
-| 12 | T12 Ícono y splash con el isologo; `AGENTS.md` dice v54 y el proyecto es v57 | Pendiente | 3.2 |
+| 10 | T10 Validaciones | ✅ `2bd26af` | oral, 3.3 |
+| 11 | T11 Idioma ES/EN | ✅ `3f411bc` | oral |
+| 12 | T12 Ícono y splash con el isologo; `AGENTS.md` dice v54 y el proyecto es v57 | ✅ `b10039f` (opcional: usar el isologo en login e Inicio en vez del ícono `disc`) | 3.2 |
 | 13 | T13 Prueba completa en el teléfono + capturas (cámara, GPS, claro/oscuro, ES/EN) | Pendiente | 3.5 |
 | 14 | T14 PDF final | Pendiente | todos |
 | 15 | T15 Probar las 2 URLs en ventana de incógnito | Pendiente | 3.5 |
@@ -139,13 +143,13 @@ Implementado con `react-native-maps` 1.27.2. En Expo Go no necesita API key; un 
 - Librería: `react-native-maps` (bundled `1.27.2`) es **NO visto en clase**; compatibilidad con Expo Go en SDK 57 y API key de Android a verificar. Probarla máximo medio día. **Alternativa vista en clase**: `Image` de un mapa del mundo + marcador con `position: 'absolute'` por proyección equirectangular (Clase 3, Styles y Layout). Las props del componente no cambian.
 - En el PDF: decir "país de la edición" (en Discogs `country` es el país de lanzamiento; la planta figura en los créditos).
 
-### T10 · Validaciones (sin librerías: Zod/Yup NO vistos)
+### T10 · Validaciones (sin librerías: Zod/Yup NO vistos) · ✅ hecho
 Respaldo: Ejercicio de Navegación - Consigna.pdf (campos vacíos + `Alert.alert`) y validaciones de `enanos-backend`.
 - Login: si el identificador tiene `@`, validar formato de email; errores inline bajo cada campo; `Alert.alert` si las credenciales fallan (ya existe).
 - Buscar: modo "Ingresar código" manual: solo dígitos, 12 (UPC-A) o 13 (EAN-13), con dígito verificador; usar `normalizeBarcode` y `releasesByBarcode` de `mock.ts`.
 - Reseña (modal nuevo desde el detalle): estrellas 1 a 5 obligatorias y texto mínimo; guardar local por usuario.
 
-### T11 · Idioma ES/EN
+### T11 · Idioma ES/EN · ✅ hecho
 Respaldo: React Native - Context.pdf y Context-Local (`translations` + `t(language)` con `useMemo`; i18next es NO visto).
 - `language` ya existe y persiste en `context/settings.tsx`. Falta: `constants/translations.ts`, exponer `texts` desde el context, pasar **todos** los textos (incluidos títulos de tabs y del Stack) y agregar la sección Idioma en `app/ajustes.tsx`.
 
