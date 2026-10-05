@@ -4,6 +4,10 @@ Red social para coleccionistas de vinilos: escaneás el código de barras de un 
 
 Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Entrega: Sprint 1, front-end.
 
+## Mockup
+
+Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la app: https://claude.ai/artifact/Xow9zKfk1fsyjavm31WGfc
+
 ## Funcionalidades
 
 - **Escaneo real del código de barras** con la cámara (EAN-13 y UPC-A). Si un código corresponde a varias ediciones, la app muestra todas para elegir la propia.
