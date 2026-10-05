@@ -1,53 +1,58 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// Paleta "Etiqueta Roja": el papel crema de la funda, el rojo de la etiqueta central
+// y el azul de los sellos clásicos. Mismos HEX que el branding y el mockup.
+// Contraste verificado (WCAG): text/bg 16.6:1 en claro y 16.4:1 en oscuro;
+// muted, primary y onPrimary superan 4.5:1 sobre bg y surface en ambos modos.
+export type ColorMode = 'LIGHT' | 'DARK';
 
-import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+export type Palette = {
+  bg: string;
+  surface: string;
+  surfaceAlt: string;
+  border: string;
+  text: string;
+  muted: string;
+  primary: string;
+  onPrimary: string;
+  secondary: string;
+  // El acento (ámbar) va solo como relleno con onAccent encima: como texto sobre bg claro no contrasta.
+  accent: string;
+  onAccent: string;
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+const light: Palette = {
+  bg: '#FAF6EF',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F1EBE1',
+  border: '#DDD3C5',
+  text: '#1A1714',
+  muted: '#6B6259',
+  primary: '#B3261E',
+  onPrimary: '#FFFFFF',
+  secondary: '#1F2A44',
+  accent: '#F2B33D',
+  onAccent: '#1A1714',
+};
+
+const dark: Palette = {
+  bg: '#121010',
+  surface: '#1E1A18',
+  surfaceAlt: '#2A2421',
+  border: '#3A322E',
+  text: '#F3EEE6',
+  muted: '#A39A92',
+  primary: '#E5534B',
+  onPrimary: '#121010',
+  secondary: '#8FA3C7',
+  accent: '#F2B33D',
+  onAccent: '#121010',
+};
+
+export function getColors(mode: ColorMode): Palette {
+  return mode === 'DARK' ? dark : light;
+}
+
+export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
+
+export const radius = { sm: 6, md: 10, lg: 16, pill: 999 };
+
+export const fontSize = { xs: 11, sm: 13, base: 15, md: 17, lg: 20, xl: 28 };

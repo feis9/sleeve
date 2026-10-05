@@ -1,35 +1,70 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Tabs } from 'expo-router';
+import { StyleSheet, View, type ColorValue } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { type Palette } from '@/constants/theme';
+import { useTexts, useTheme } from '@/context/settings';
+
+type IconName = keyof typeof Ionicons.glyphMap;
+
+function tabIcon(name: IconName) {
+  return function TabIcon({ color, size }: { color: ColorValue; size: number }) {
+    return <Ionicons name={name} size={size} color={color} />;
+  };
+}
+
+function ScanTabIcon() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  return (
+    <View style={styles.scanButton}>
+      <Ionicons name="barcode-outline" size={26} color={colors.onPrimary} />
+    </View>
+  );
+}
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colors } = useTheme();
+  const texts = useTexts();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}>
+      <Tabs.Screen name="index" options={{ title: texts.tabs.home, tabBarIcon: tabIcon('home') }} />
+      <Tabs.Screen name="buscar" options={{ title: texts.tabs.search, tabBarIcon: tabIcon('search') }} />
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        name="escanear-tab"
+        options={{ title: '', tabBarIcon: () => <ScanTabIcon /> }}
+        listeners={{
+          // No es una pantalla: abre el scanner como modal a pantalla completa.
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push('/escanear');
+          },
         }}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+      <Tabs.Screen name="coleccion" options={{ title: texts.tabs.collection, tabBarIcon: tabIcon('albums') }} />
+      <Tabs.Screen name="perfil" options={{ title: texts.tabs.profile, tabBarIcon: tabIcon('person') }} />
     </Tabs>
   );
 }
+
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    scanButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+  });
