@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
@@ -11,8 +10,14 @@ import { validateIdentifier, validatePassword } from '@/utils/validation';
 
 // No es una ruta: el layout raíz la muestra cuando no hay sesión (render condicional,
 // el mismo patrón que el RootNavigator del ejercicio de navegación).
+// Isologo vertical: versión clara u oscura según el tema.
+const LOGO = {
+  LIGHT: require('@/assets/images/logo-vertical-light.png'),
+  DARK: require('@/assets/images/logo-vertical-dark.png'),
+};
+
 export function LoginScreen() {
-  const { colors } = useTheme();
+  const { colors, colorMode } = useTheme();
   const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { login } = useAuth();
@@ -41,8 +46,7 @@ export function LoginScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
-            <Ionicons name="disc" size={64} color={colors.primary} />
-            <Text style={styles.logo}>Sleeve</Text>
+            <Image source={LOGO[colorMode]} style={styles.logo} resizeMode="contain" accessibilityLabel="Sleeve" />
             <Text style={styles.tagline}>{texts.login.tagline}</Text>
           </View>
 
@@ -111,10 +115,8 @@ const createStyles = (colors: Palette) =>
       gap: spacing.sm,
     },
     logo: {
-      color: colors.text,
-      fontSize: 40,
-      fontWeight: '800',
-      letterSpacing: -1,
+      width: 160,
+      height: 190,
     },
     tagline: {
       color: colors.muted,

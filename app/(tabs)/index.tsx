@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
@@ -14,8 +14,14 @@ import { useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
 import { releases } from '@/data/mock';
 
+// Isologo horizontal: versión clara u oscura según el tema (mismos archivos que el branding).
+const LOGO = {
+  LIGHT: require('@/assets/images/logo-horizontal-light.png'),
+  DARK: require('@/assets/images/logo-horizontal-dark.png'),
+};
+
 export default function InicioScreen() {
-  const { colors } = useTheme();
+  const { colors, colorMode } = useTheme();
   const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -27,7 +33,7 @@ export default function InicioScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.logo}>Sleeve</Text>
+          <Image source={LOGO[colorMode]} style={styles.logo} resizeMode="contain" accessibilityLabel="Sleeve" />
           <Pressable onPress={() => router.navigate('/perfil')}>
             <Avatar user={me} size={36} />
           </Pressable>
@@ -89,10 +95,8 @@ const createStyles = (colors: Palette) =>
       marginBottom: spacing.lg,
     },
     logo: {
-      color: colors.text,
-      fontSize: fontSize.xl,
-      fontWeight: '800',
-      letterSpacing: -0.5,
+      width: 112,
+      height: 34,
     },
     scanCard: {
       flexDirection: 'row',
