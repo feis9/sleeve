@@ -41,6 +41,23 @@ const jarOfFliesTracks = [
   { position: 'B3', title: 'Swing On This', duration: '4:01' },
 ];
 
+const useYourIllusionIITracks = [
+  { position: 'A1', title: 'Civil War', duration: '7:36' },
+  { position: 'A2', title: '14 Years', duration: '4:17' },
+  { position: 'A3', title: 'Yesterdays', duration: '3:13' },
+  { position: 'A4', title: "Knockin' On Heaven's Door", duration: '5:36' },
+  { position: 'B1', title: 'Get In The Ring', duration: '5:29' },
+  { position: 'B2', title: 'Shotgun Blues', duration: '3:23' },
+  { position: 'B3', title: 'Breakdown', duration: '6:58' },
+  { position: 'C1', title: 'Pretty Tied Up', duration: '4:46' },
+  { position: 'C2', title: 'Locomotive', duration: '8:42' },
+  { position: 'C3', title: 'So Fine', duration: '4:09' },
+  { position: 'D1', title: 'Estranged', duration: '9:20' },
+  { position: 'D2', title: 'You Could Be Mine', duration: '5:48' },
+  { position: 'D3', title: "Don't Cry (Alt. Lyrics)", duration: '4:42' },
+  { position: 'D4', title: 'My World', duration: '1:22' },
+];
+
 export const releases: Release[] = [
   {
     id: 'r-dsotm-eu',
@@ -306,6 +323,68 @@ export const releases: Release[] = [
     coverColor: '#6B5226',
     discogsRating: 4.8,
     tracklist: jarOfFliesTracks,
+  },
+  {
+    // Discogs r25128898. Prensado por Optimal Media (Alemania).
+    id: 'r-uyi2-2022-eu',
+    title: 'Use Your Illusion II',
+    artist: "Guns N' Roses",
+    year: 2022,
+    country: 'Europe',
+    label: 'Geffen Records',
+    format: '2xLP, Album, Reissue, Remastered, 180g',
+    genre: 'Rock',
+    barcode: '602445117314',
+    coverColor: '#2F3E8C',
+    discogsRating: 4.72,
+    tracklist: useYourIllusionIITracks,
+  },
+  {
+    // Discogs r25146217. Mismo código de barras que la edición europea.
+    id: 'r-uyi2-2022-us',
+    title: 'Use Your Illusion II',
+    artist: "Guns N' Roses",
+    year: 2022,
+    country: 'US',
+    label: 'Geffen Records',
+    format: '2xLP, Album, Reissue, Remastered, 180g',
+    genre: 'Rock',
+    barcode: '602445117314',
+    coverColor: '#3A4A99',
+    discogsRating: 4.66,
+    tracklist: useYourIllusionIITracks,
+  },
+  {
+    // Discogs r6546645. Discogs no publica las duraciones de este prensado.
+    id: 'r-miseducation-2014-us',
+    title: 'The Miseducation Of Lauryn Hill',
+    artist: 'Lauryn Hill',
+    year: 2014,
+    country: 'US',
+    label: 'Ruffhouse Records / Columbia',
+    format: '2xLP, Album, Reissue',
+    genre: 'Hip Hop',
+    barcode: '888750215710',
+    coverColor: '#7A5A3A',
+    discogsRating: 4.75,
+    tracklist: [
+      { position: 'A1', title: 'Intro' },
+      { position: 'A2', title: 'Lost Ones' },
+      { position: 'A3', title: 'Ex-Factor' },
+      { position: 'A4', title: 'To Zion' },
+      { position: 'A5', title: 'Doo Wop (That Thing)' },
+      { position: 'B1', title: 'Superstar' },
+      { position: 'B2', title: 'Final Hour' },
+      { position: 'B3', title: 'When It Hurts So Bad' },
+      { position: 'B4', title: 'I Used To Love Him' },
+      { position: 'C1', title: 'Forgive Them Father' },
+      { position: 'C2', title: 'Every Ghetto, Every City' },
+      { position: 'C3', title: 'Nothing Even Matters' },
+      { position: 'D1', title: 'Everything Is Everything' },
+      { position: 'D2', title: 'The Miseducation Of Lauryn Hill' },
+      { position: 'D3', title: "Can't Take My Eyes Off Of You" },
+      { position: 'D4', title: 'Tell Him' },
+    ],
   },
 ];
 
