@@ -18,6 +18,8 @@ const ES = {
   catalog: {
     loading: 'Cargando discos…',
     offline: 'No se pudo conectar con el servidor. Revisá que el backend esté corriendo y que el teléfono esté en la misma Wi-Fi.',
+    searching: 'Buscando en Discogs…',
+    discogsOffline: 'No se pudo consultar Discogs: solo se buscó entre los discos guardados en el teléfono.',
   },
 
   search: {
@@ -162,6 +164,8 @@ const EN: Texts = {
   catalog: {
     loading: 'Loading records…',
     offline: "Couldn't reach the server. Check that the backend is running and that your phone is on the same Wi-Fi.",
+    searching: 'Searching Discogs…',
+    discogsOffline: "Couldn't reach Discogs: only the records saved on this phone were searched.",
   },
 
   search: {
