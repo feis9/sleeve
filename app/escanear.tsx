@@ -8,8 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Cover } from '@/components/cover';
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
-import { flagFor, releasesByBarcode } from '@/data/mock';
+import { flagFor } from '@/data/mock';
 import type { Release } from '@/types';
 
 // Códigos que traen las fundas: EAN-13 (Europa, Argentina) y UPC-A (EE. UU.), más sus versiones cortas.
@@ -23,6 +24,7 @@ export default function EscanearScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // [estado del permiso (null mientras se consulta), función para pedirlo]
+  const { releasesByBarcode } = useReleases();
   const [permiso, pedirPermiso] = useCameraPermissions();
   const [lectura, setLectura] = useState<Lectura | null>(null);
   // La cámara puede reportar el mismo código varias veces antes de que React actualice el estado.

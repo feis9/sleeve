@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { LoginScreen } from '@/components/login-screen';
 import { AuthProvider, useAuth } from '@/context/auth';
 import { CollectionProvider } from '@/context/collection';
+import { ReleasesProvider } from '@/context/releases';
 import { ReviewsProvider } from '@/context/reviews';
 import { AppSettingsProvider, useAppSettings } from '@/context/settings';
 
@@ -15,13 +16,15 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <AppSettingsProvider>
-      <AuthProvider>
-        <CollectionProvider>
-          <ReviewsProvider>
-            <ThemedStack />
-          </ReviewsProvider>
-        </CollectionProvider>
-      </AuthProvider>
+      <ReleasesProvider>
+        <AuthProvider>
+          <CollectionProvider>
+            <ReviewsProvider>
+              <ThemedStack />
+            </ReviewsProvider>
+          </CollectionProvider>
+        </AuthProvider>
+      </ReleasesProvider>
     </AppSettingsProvider>
   );
 }

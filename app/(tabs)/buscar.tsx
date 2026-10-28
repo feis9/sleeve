@@ -8,8 +8,8 @@ import { Chip } from '@/components/chip';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReleaseRow } from '@/components/release-row';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
-import { releases, releasesByBarcode } from '@/data/mock';
 import type { Release } from '@/types';
 import { barcodeDigits, validateBarcode } from '@/utils/validation';
 
@@ -33,6 +33,7 @@ export default function BuscarScreen() {
   const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const { releases, releasesByBarcode } = useReleases();
   const [query, setQuery] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todo');
   // En modo código el error se muestra al enviar o cuando ya se tipearon 12 dígitos, no mientras se escribe.

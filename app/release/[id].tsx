@@ -11,10 +11,10 @@ import { ReviewCard } from '@/components/review-card';
 import { ReviewModal } from '@/components/review-modal';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
 import { useReviews } from '@/context/reviews';
-import { getRelease } from '@/data/mock';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
@@ -41,6 +41,7 @@ export default function ReleaseScreen() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { has, add, remove, findFor, saveFind } = useCollection();
+  const { getRelease } = useReleases();
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
   const { reviewsFor, myReviewFor, saveReview } = useReviews();

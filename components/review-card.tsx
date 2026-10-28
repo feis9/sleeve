@@ -4,9 +4,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTheme } from '@/context/settings';
 import { useCurrentUser } from '@/context/auth';
-import { getRelease, getUser } from '@/data/mock';
+import { getUser } from '@/data/mock';
 import type { Review } from '@/types';
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 export function ReviewCard({ review, showRelease = false }: Props) {
   const { colors } = useTheme();
   const me = useCurrentUser();
+  const { getRelease } = useReleases();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const user = getUser(review.userId);

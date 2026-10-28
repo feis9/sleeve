@@ -7,11 +7,12 @@ import { GRID_COLUMNS, GRID_GAP, GRID_PADDING, GridCover, useGridItemSize } from
 import { ReviewCard } from '@/components/review-card';
 import { Stat } from '@/components/stat';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
 import { useReviews } from '@/context/reviews';
-import { getRelease, getUser } from '@/data/mock';
+import { getUser } from '@/data/mock';
 import type { Release } from '@/types';
 
 type Tab = 'coleccion' | 'resenas';
@@ -25,6 +26,7 @@ export function ProfileView({ userId }: { userId: string }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { ids } = useCollection();
+  const { getRelease } = useReleases();
   const ranking = useRanking();
   const itemSize = useGridItemSize();
   const [tab, setTab] = useState<Tab>('coleccion');
