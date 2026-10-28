@@ -17,6 +17,9 @@ import { useCollection } from '@/context/collection';
 import { useReviews } from '@/context/reviews';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
+// Texto exacto que piden los términos de uso de la API de Discogs. Va igual en los dos idiomas.
+const DISCOGS_CREDIT = 'Data provided by Discogs.';
+
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
 type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }>;
 
@@ -98,6 +101,14 @@ export default function ReleaseScreen() {
         {release.label !== null && <Chip label={release.label} />}
         {release.format !== null && <Chip label={release.format} />}
       </View>
+      {/* Lo exigen los términos de uso de la API de Discogs: el aviso, en inglés, al lado de los datos
+          y con link a la página de la edición en discogs.com. */}
+      <Text
+        style={[styles.muted, styles.link]}
+        onPress={() => Linking.openURL(`https://www.discogs.com/release/${release.discogsId}`)}
+        accessibilityRole="link">
+        {DISCOGS_CREDIT}
+      </Text>
 
       <View style={styles.ratings}>
         <RatingBox
