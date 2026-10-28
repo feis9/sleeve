@@ -7,11 +7,17 @@ import { ApiError, apiPost } from '@/utils/api';
 
 // 'ok': entró. 'invalid': el backend rechazó los datos. 'offline': no se pudo hablar con el backend.
 export type LoginResult = 'ok' | 'invalid' | 'offline';
+// Además, 'taken': el usuario o el email ya están registrados (409).
+export type RegisterResult = LoginResult | 'taken';
+
+export type RegisterData = { name: string; username: string; email: string; password: string };
 
 type AuthContextValue = {
   user: User | null;
   // Valida contra el backend (POST /api/login). Acepta email o nombre de usuario.
   login: (identifier: string, password: string) => Promise<LoginResult>;
+  // Crea la cuenta en el backend (POST /api/registro) y deja la sesión iniciada con ella.
+  register: (data: RegisterData) => Promise<RegisterResult>;
   logout: () => void;
   isHydrated: boolean;
 };
@@ -53,11 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(() => {
+    function iniciarSesion(u: BackendUser) {
+      const nuevo = toUser(u);
+      setUser(nuevo);
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevo)).catch(() => {});
+    }
+
     async function login(identifier: string, password: string): Promise<LoginResult> {
       try {
-        const nuevo = toUser(await apiPost<BackendUser>('/api/login', { identifier, password }));
-        setUser(nuevo);
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevo)).catch(() => {});
+        iniciarSesion(await apiPost<BackendUser>('/api/login', { identifier, password }));
         return 'ok';
       } catch (e) {
         // 400 o 401: el backend respondió y los datos no sirven. Cualquier otra cosa: no hubo conexión
@@ -67,12 +77,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    async function register(data: RegisterData): Promise<RegisterResult> {
+      try {
+        iniciarSesion(await apiPost<BackendUser>('/api/registro', data));
+        return 'ok';
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 409) return 'taken';
+        if (e instanceof ApiError && e.status === 400) return 'invalid';
+        return 'offline';
+      }
+    }
+
     function logout() {
       setUser(null);
       AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     }
 
-    return { user, login, logout, isHydrated };
+    return { user, login, register, logout, isHydrated };
   }, [user, isHydrated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

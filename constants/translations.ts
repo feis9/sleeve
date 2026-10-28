@@ -118,6 +118,25 @@ const ES = {
     failedTitle: 'No pudimos ingresar',
     failedText: 'El usuario o la contraseña no son correctos.',
     demo: 'Cuenta de prueba: lucaf · vinilo123',
+    noAccount: '¿No tenés cuenta? Creá una',
+  },
+
+  register: {
+    title: 'Creá tu cuenta',
+    name: 'Nombre',
+    namePlaceholder: 'Cómo te van a ver los demás',
+    username: 'Usuario',
+    usernamePlaceholder: 'Letras, números, punto o guion bajo',
+    email: 'Email',
+    emailPlaceholder: 'nombre@dominio.com',
+    password: 'Contraseña',
+    passwordPlaceholder: 'Al menos 6 caracteres',
+    submit: 'Crear cuenta',
+    submitting: 'Creando cuenta…',
+    failedTitle: 'No pudimos crear la cuenta',
+    takenText: 'Ese usuario o email ya está registrado.',
+    invalidText: 'Revisá los datos e intentá de nuevo.',
+    haveAccount: '¿Ya tenés cuenta? Ingresá',
   },
 
   reviewForm: {
@@ -134,6 +153,10 @@ const ES = {
     usernameInvalid: 'El usuario lleva de 3 a 30 caracteres: letras, números, punto o guion bajo.',
     passwordRequired: 'Ingresá tu contraseña.',
     passwordShort: (min: number) => `La contraseña tiene al menos ${min} caracteres.`,
+    nameRequired: 'Ingresá tu nombre.',
+    nameLong: (max: number) => `El nombre tiene hasta ${max} caracteres.`,
+    usernameRequired: 'Elegí un nombre de usuario.',
+    emailRequired: 'Ingresá tu email.',
     barcodeRequired: 'Ingresá el código de barras.',
     barcodeDigitsOnly: 'El código lleva solo números.',
     barcodeTooShort: (n: number) =>
@@ -263,6 +286,25 @@ const EN: Texts = {
     failedTitle: "We couldn't sign you in",
     failedText: 'The username or password is incorrect.',
     demo: 'Test account: lucaf · vinilo123',
+    noAccount: "Don't have an account? Create one",
+  },
+
+  register: {
+    title: 'Create your account',
+    name: 'Name',
+    namePlaceholder: 'How others will see you',
+    username: 'Username',
+    usernamePlaceholder: 'Letters, numbers, dot or underscore',
+    email: 'Email',
+    emailPlaceholder: 'name@domain.com',
+    password: 'Password',
+    passwordPlaceholder: 'At least 6 characters',
+    submit: 'Create account',
+    submitting: 'Creating account…',
+    failedTitle: "We couldn't create your account",
+    takenText: 'That username or email is already registered.',
+    invalidText: 'Check your details and try again.',
+    haveAccount: 'Already have an account? Sign in',
   },
 
   reviewForm: {
@@ -279,6 +321,10 @@ const EN: Texts = {
     usernameInvalid: 'Usernames are 3 to 30 characters: letters, numbers, dot or underscore.',
     passwordRequired: 'Enter your password.',
     passwordShort: (min) => `Passwords are at least ${min} characters long.`,
+    nameRequired: 'Enter your name.',
+    nameLong: (max) => `Names are up to ${max} characters long.`,
+    usernameRequired: 'Choose a username.',
+    emailRequired: 'Enter your email.',
     barcodeRequired: 'Enter the barcode.',
     barcodeDigitsOnly: 'Barcodes only contain numbers.',
     barcodeTooShort: (n) =>

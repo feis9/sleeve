@@ -8,6 +8,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_RE = /^[a-z0-9._]{3,30}$/i;
 
 export const PASSWORD_MIN = 6;
+export const NAME_MAX = 50;
 export const REVIEW_MIN = 10;
 export const REVIEW_MAX = 500;
 
@@ -17,6 +18,26 @@ export function validateIdentifier(value: string, m: Messages): string | null {
   if (!v) return m.identifierRequired;
   if (v.includes('@')) return EMAIL_RE.test(v) ? null : m.emailInvalid;
   return USERNAME_RE.test(v) ? null : m.usernameInvalid;
+}
+
+// Registro: mismas reglas que backend/src/usuarios.ts.
+export function validateName(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.nameRequired;
+  if (v.length > NAME_MAX) return m.nameLong(NAME_MAX);
+  return null;
+}
+
+export function validateUsername(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.usernameRequired;
+  return USERNAME_RE.test(v) ? null : m.usernameInvalid;
+}
+
+export function validateEmail(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.emailRequired;
+  return EMAIL_RE.test(v) ? null : m.emailInvalid;
 }
 
 export function validatePassword(value: string, m: Messages): string | null {

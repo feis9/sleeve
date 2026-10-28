@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
+import { RegisterScreen } from '@/components/register-screen';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { useTexts, useTheme } from '@/context/settings';
@@ -40,6 +41,9 @@ export function LoginScreen() {
   // Desde RN 0.88 el tipo de la instancia es TextInputInstance: TextInput es el componente, no la instancia.
   const passwordRef = useRef<TextInputInstance>(null);
 
+  // true: se muestra el registro en lugar del login.
+  const [creandoCuenta, setCreandoCuenta] = useState(false);
+
   const errorIdentifier = intentado ? validateIdentifier(identifier, texts.validation) : null;
   const errorPassword = intentado ? validatePassword(password, texts.validation) : null;
 
@@ -56,6 +60,8 @@ export function LoginScreen() {
     if (resultado === 'invalid') Alert.alert(texts.login.failedTitle, texts.login.failedText);
     if (resultado === 'offline') Alert.alert(texts.login.failedTitle, texts.catalog.offline);
   }
+
+  if (creandoCuenta) return <RegisterScreen onBack={() => setCreandoCuenta(false)} />;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -105,6 +111,8 @@ export function LoginScreen() {
 
             <PrimaryButton label={enviando ? texts.login.submitting : texts.login.submit} icon="log-in-outline" onPress={ingresar} />
           </View>
+
+          <PrimaryButton label={texts.login.noAccount} variant="outline" onPress={() => setCreandoCuenta(true)} />
 
           <Text style={styles.demo}>{texts.login.demo}</Text>
         </ScrollView>
