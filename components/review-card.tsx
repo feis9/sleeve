@@ -6,8 +6,7 @@ import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useReleases } from '@/context/releases';
 import { useTheme } from '@/context/settings';
-import { useCurrentUser } from '@/context/auth';
-import { getUser } from '@/data/mock';
+import { useCurrentUser, useUserById } from '@/context/auth';
 import type { Review } from '@/types';
 
 type Props = {
@@ -22,7 +21,7 @@ export function ReviewCard({ review, showRelease = false }: Props) {
   const { getRelease } = useReleases();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const user = getUser(review.userId);
+  const user = useUserById(review.userId);
   const release = getRelease(review.releaseId);
   if (!user || !release) return null;
 

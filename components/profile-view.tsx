@@ -10,9 +10,8 @@ import { fontSize, spacing, type Palette } from '@/constants/theme';
 import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import { useCollection, useRanking } from '@/context/collection';
-import { useCurrentUser } from '@/context/auth';
+import { useCurrentUser, useUserById } from '@/context/auth';
 import { useReviews } from '@/context/reviews';
-import { getUser } from '@/data/mock';
 import type { Release } from '@/types';
 
 type Tab = 'coleccion' | 'resenas';
@@ -31,7 +30,7 @@ export function ProfileView({ userId }: { userId: string }) {
   const itemSize = useGridItemSize();
   const [tab, setTab] = useState<Tab>('coleccion');
 
-  const user = getUser(userId);
+  const user = useUserById(userId);
   if (!user) {
     return <Text style={styles.empty}>{texts.profile.notFound}</Text>;
   }

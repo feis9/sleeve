@@ -1,6 +1,7 @@
-import type { Credential, Review, User } from '@/types';
+import type { Review, User } from '@/types';
 
-// Datos de prueba de usuarios hasta que el backend los reemplace (Express + Prisma).
+// Perfiles de prueba (nombre, color y colección de ejemplo). Las cuentas y contraseñas están en el
+// backend (backend/src/seed.ts): el login se valida en el servidor.
 // Los discos ya no están acá: los datos de cada edición vienen de Discogs a través del backend.
 export const ME_ID = 'u-luca';
 
@@ -58,16 +59,6 @@ export const users: User[] = [
     avatarColor: '#3E7CB1',
     collection: ['4345204', '30106898'],
   },
-];
-
-// Credenciales de prueba para el login local (Sprint 1, sin backend).
-// Van en texto plano solo porque son datos simulados; con backend esto se valida en el servidor.
-export const credentials: Credential[] = [
-  { userId: ME_ID, email: 'luca@sleeve.app', password: 'vinilo123' },
-  { userId: 'u-mica', email: 'mica@sleeve.app', password: 'vinilo123' },
-  { userId: 'u-tomas', email: 'tomas@sleeve.app', password: 'vinilo123' },
-  { userId: 'u-sofi', email: 'sofi@sleeve.app', password: 'vinilo123' },
-  { userId: 'u-juan', email: 'juan@sleeve.app', password: 'vinilo123' },
 ];
 
 // Las reseñas de ejemplo hablaban de discos que ya no están en la demo. Las nuevas se escriben desde la app.

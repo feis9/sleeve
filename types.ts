@@ -49,9 +49,3 @@ export type Find = {
   // ISO 8601
   date: string;
 };
-
-export type Credential = {
-  userId: string;
-  email: string;
-  password: string;
-};

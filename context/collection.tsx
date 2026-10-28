@@ -120,10 +120,12 @@ export function useCollection() {
 }
 
 // Ranking por cantidad de discos. Tu cantidad sale del estado, así sube si agregás discos.
+// Una cuenta creada con el registro no está en el mock: se suma al ranking igual.
 export function useRanking() {
   const { user } = useAuth();
   const { ids } = useCollection();
-  return users
+  const todos = user && !users.some((u) => u.id === user.id) ? [...users, user] : users;
+  return todos
     .map((u) => ({ user: u, count: u.id === user?.id ? ids.length : u.collection.length }))
     .sort((a, b) => b.count - a.count);
 }
