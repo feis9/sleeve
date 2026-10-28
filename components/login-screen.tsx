@@ -1,5 +1,16 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputInstance,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
@@ -26,7 +37,8 @@ export function LoginScreen() {
   // Los errores aparecen recién después del primer intento, y se recalculan mientras el usuario corrige.
   const [intentado, setIntentado] = useState(false);
   // Para saltar del usuario a la contraseña con el botón "siguiente" del teclado.
-  const passwordRef = useRef<TextInput>(null);
+  // Desde RN 0.88 el tipo de la instancia es TextInputInstance: TextInput es el componente, no la instancia.
+  const passwordRef = useRef<TextInputInstance>(null);
 
   const errorIdentifier = intentado ? validateIdentifier(identifier, texts.validation) : null;
   const errorPassword = intentado ? validatePassword(password, texts.validation) : null;

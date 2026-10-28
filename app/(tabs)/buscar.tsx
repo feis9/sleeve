@@ -107,7 +107,8 @@ export default function BuscarScreen() {
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           q ? (
-            mostrarErrorCodigo || (modoCodigo && errorCodigo) ? null : (
+            // undefined y no null: desde RN 0.88 ListEmptyComponent no acepta null.
+            mostrarErrorCodigo || (modoCodigo && errorCodigo) ? undefined : (
               <Text style={styles.emptyText}>
                 {modoCodigo ? texts.search.noCodeResults : texts.search.noResults(query)}
               </Text>
