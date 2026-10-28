@@ -31,6 +31,13 @@ export function barcodeDigits(value: string) {
   return value.replace(/[\s-]/g, '');
 }
 
+// Deja solo dígitos y unifica UPC-A con EAN-13: iOS suele leer un UPC-A (12 dígitos)
+// como EAN-13 con un 0 adelante, así que '0' + 12 dígitos y los 12 dígitos son el mismo código.
+export function normalizeBarcode(code: string) {
+  const digits = code.replace(/\D/g, '');
+  return digits.length === 13 && digits.startsWith('0') ? digits.slice(1) : digits;
+}
+
 // Dígito verificador GTIN: desde la derecha (sin contar el verificador), pesos 3, 1, 3, 1…
 export function hasValidCheckDigit(digits: string) {
   const body = digits.slice(0, -1);

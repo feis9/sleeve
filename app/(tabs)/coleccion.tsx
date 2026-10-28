@@ -33,7 +33,8 @@ export default function ColeccionScreen() {
   const [genero, setGenero] = useState(ALL);
 
   const discos = ids.map((id) => getRelease(id)).filter((r): r is Release => r !== undefined);
-  const generos = [ALL, ...new Set(discos.map((d) => d.genre))];
+  // Discogs puede no tener género: esos discos solo aparecen en "Todos".
+  const generos = [ALL, ...new Set(discos.map((d) => d.genre).filter((g): g is string => g !== null))];
   const visibles = genero === ALL ? discos : discos.filter((d) => d.genre === genero);
 
   return (

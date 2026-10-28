@@ -10,8 +10,9 @@ import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
-import { flagFor } from '@/data/mock';
+import { flagFor } from '@/data/countries';
 import type { Release } from '@/types';
+import { joinMeta } from '@/utils/format';
 
 // Códigos que traen las fundas: EAN-13 (Europa, Argentina) y UPC-A (EE. UU.), más sus versiones cortas.
 const BARCODE_TYPES = ['ean13', 'upc_a', 'ean8', 'upc_e'] as const;
@@ -120,10 +121,10 @@ export default function EscanearScreen() {
                     <Cover release={r} size={48} />
                     <View style={styles.candidateInfo}>
                       <Text style={styles.candidateTitle} numberOfLines={1}>
-                        {flagFor(r.country)} {r.country} · {r.year}
+                        {flagFor(r.country)} {joinMeta(r.country, r.year)}
                       </Text>
                       <Text style={styles.candidateMeta} numberOfLines={1}>
-                        {r.label} · {r.format}
+                        {joinMeta(r.label, r.format)}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.muted} />

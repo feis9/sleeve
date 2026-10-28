@@ -7,9 +7,10 @@ import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAppSettings } from '@/context/settings';
 import { getCountry } from '@/data/countries';
 import type { Release } from '@/types';
+import { joinMeta } from '@/utils/format';
 
 // Mapa con el país de UNA edición. Se usa en el detalle, sin importar desde dónde se llegó
-// (escaneo, colección, colección ajena o búsqueda). En la versión final el país sale de la Discogs API.
+// (escaneo, colección, colección ajena o búsqueda). El país sale de Discogs con el criterio del backend.
 export function PressingMap({ release }: { release: Release }) {
   const { colors, language, texts } = useAppSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -30,7 +31,7 @@ export function PressingMap({ release }: { release: Release }) {
 
   const name = language === 'EN' ? country.nameEn : country.nameEs;
   // Al tocar el marcador: "🇫🇷 Francia" / "Rolling Stones Records · 2020 · LP, Album…"
-  const description = `${release.label} · ${release.year} · ${release.format}`;
+  const description = joinMeta(release.label, release.year, release.format);
 
   return (
     <View style={styles.card}>
@@ -41,7 +42,7 @@ export function PressingMap({ release }: { release: Release }) {
         <View style={styles.captionText}>
           <Text style={styles.name}>{name}</Text>
           <Text style={styles.muted}>
-            {release.label} · {release.year}
+            {joinMeta(release.label, release.year)}
           </Text>
         </View>
       </View>

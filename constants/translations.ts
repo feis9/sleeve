@@ -15,6 +15,11 @@ const ES = {
     seeMyProfile: 'Ver mi perfil',
   },
 
+  catalog: {
+    loading: 'Cargando discos…',
+    offline: 'No se pudo conectar con el servidor. Revisá que el backend esté corriendo y que el teléfono esté en la misma Wi-Fi.',
+  },
+
   search: {
     title: 'Buscar',
     filters: { todo: 'Todo', artista: 'Artista', album: 'Álbum', sello: 'Sello', codigo: 'Código' },
@@ -152,6 +157,11 @@ const EN: Texts = {
     recent: 'Recently added',
     topCollectors: 'Top collectors',
     seeMyProfile: 'See my profile',
+  },
+
+  catalog: {
+    loading: 'Loading records…',
+    offline: "Couldn't reach the server. Check that the backend is running and that your phone is on the same Wi-Fi.",
   },
 
   search: {

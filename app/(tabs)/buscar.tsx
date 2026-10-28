@@ -25,7 +25,8 @@ function coincide(release: Release, query: string, filtro: Exclude<Filtro, 'codi
     album: [release.title],
     sello: [release.label],
   }[filtro];
-  return campos.some((campo) => campo.toLowerCase().includes(query));
+  // El sello puede venir vacío de Discogs: ese campo no cuenta.
+  return campos.some((campo) => campo?.toLowerCase().includes(query) ?? false);
 }
 
 export default function BuscarScreen() {

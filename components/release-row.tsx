@@ -7,6 +7,7 @@ import { Cover } from '@/components/cover';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
 import { useTheme } from '@/context/settings';
 import type { Release } from '@/types';
+import { joinMeta } from '@/utils/format';
 
 export function ReleaseRow({ release }: { release: Release }) {
   const { colors } = useTheme();
@@ -25,7 +26,7 @@ export function ReleaseRow({ release }: { release: Release }) {
           {release.artist}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {release.year} · {release.country} · {release.label}
+          {joinMeta(release.year, release.country, release.label)}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.muted} />

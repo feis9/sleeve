@@ -4,18 +4,23 @@ export type Track = {
   duration?: string;
 };
 
+// Una edición, tal como la devuelve el backend (GET /api/discogs/releases/:id).
+// Lo que Discogs puede no tener llega como null.
 export type Release = {
+  // Número de release de Discogs como texto (las rutas de Expo Router usan texto).
   id: string;
+  discogsId: number;
   title: string;
   artist: string;
-  year: number;
-  country: string;
-  label: string;
-  format: string;
-  genre: string;
-  barcode?: string;
-  coverColor: string;
-  discogsRating: number;
+  year: number | null;
+  country: string | null;
+  label: string | null;
+  format: string | null;
+  genre: string | null;
+  barcode: string | null;
+  discogsRating: number | null;
+  // Tapa original de Discogs. Si es null, la app dibuja el placeholder.
+  coverUrl: string | null;
   tracklist: Track[];
 };
 

@@ -14,7 +14,8 @@ type ReviewsContextValue = {
 };
 
 // Reseñas escritas en este teléfono. Sin backend no se comparten entre dispositivos.
-const STORAGE_KEY = 'sleeve-reviews';
+// v2: las reseñas guardadas con los ids viejos de los discos no sirven (ver context/collection.tsx).
+const STORAGE_KEY = 'sleeve-reviews-v2';
 
 const ReviewsContext = createContext<ReviewsContextValue | undefined>(undefined);
 

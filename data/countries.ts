@@ -30,6 +30,10 @@ export const countries: Record<string, Country> = {
   Japan: { latitude: 36.2, longitude: 138.3, delta: 16, flag: '🇯🇵', nameEs: 'Japón', nameEn: 'Japan' },
 };
 
-export function getCountry(country: string): Country | undefined {
-  return countries[country];
+export function getCountry(country: string | null): Country | undefined {
+  return country ? countries[country] : undefined;
+}
+
+export function flagFor(country: string | null) {
+  return getCountry(country)?.flag ?? '🏳️';
 }

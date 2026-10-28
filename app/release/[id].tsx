@@ -41,7 +41,7 @@ export default function ReleaseScreen() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { has, add, remove, findFor, saveFind } = useCollection();
-  const { getRelease } = useReleases();
+  const { getRelease, status } = useReleases();
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
   const { reviewsFor, myReviewFor, saveReview } = useReviews();
@@ -51,7 +51,8 @@ export default function ReleaseScreen() {
   if (!release) {
     return (
       <View style={styles.notFound}>
-        <Text style={styles.muted}>{texts.release.notFound}</Text>
+        {/* Mientras llegan los discos del backend todavía no se sabe si existe. */}
+        <Text style={styles.muted}>{status === 'cargando' ? texts.catalog.loading : texts.release.notFound}</Text>
       </View>
     );
   }
@@ -91,14 +92,19 @@ export default function ReleaseScreen() {
       </View>
 
       <View style={styles.chips}>
-        <Chip label={String(release.year)} />
-        <Chip label={release.country} />
-        <Chip label={release.label} />
-        <Chip label={release.format} />
+        {/* Solo los datos que Discogs tiene. */}
+        {release.year !== null && <Chip label={String(release.year)} />}
+        {release.country !== null && <Chip label={release.country} />}
+        {release.label !== null && <Chip label={release.label} />}
+        {release.format !== null && <Chip label={release.format} />}
       </View>
 
       <View style={styles.ratings}>
-        <RatingBox label="Discogs" value={release.discogsRating.toFixed(1)} caption={texts.release.community} />
+        <RatingBox
+          label="Discogs"
+          value={release.discogsRating !== null ? release.discogsRating.toFixed(1) : '-'}
+          caption={texts.release.community}
+        />
         <RatingBox
           label="Sleeve"
           value={sleeveRating}

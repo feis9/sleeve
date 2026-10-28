@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 
 import type { Find } from '@/types';
+import { conTimeout } from '@/utils/timeout';
 
 // Resultado de intentar registrar dónde encontraste un disco. Ninguno bloquea agregarlo a la colección.
 export type FindResult =
@@ -53,22 +54,6 @@ async function placeFor(latitude: number, longitude: number): Promise<string | n
   } catch {
     return null;
   }
-}
-
-function conTimeout<T>(promesa: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timeout')), ms);
-    promesa.then(
-      (valor) => {
-        clearTimeout(timer);
-        resolve(valor);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
 }
 
 // "05/10/2026"

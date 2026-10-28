@@ -27,7 +27,7 @@ export default function InicioScreen() {
 
   const ranking = useRanking();
   const me = useCurrentUser();
-  const { releases } = useReleases();
+  const { releases, status } = useReleases();
   const recientes = releases.slice(0, 6);
 
   return (
@@ -50,6 +50,12 @@ export default function InicioScreen() {
         </Pressable>
 
         <SectionHeader title={texts.home.recent} />
+        {/* Sin discos todavía: o están llegando del backend o el backend no respondió. */}
+        {recientes.length === 0 && (
+          <Text style={styles.catalogMessage}>
+            {status === 'sin-conexion' ? texts.catalog.offline : texts.catalog.loading}
+          </Text>
+        )}
         <FlatList
           horizontal
           data={recientes}
@@ -122,6 +128,10 @@ const createStyles = (colors: Palette) =>
     },
     carousel: {
       gap: spacing.md,
+    },
+    catalogMessage: {
+      color: colors.muted,
+      fontSize: fontSize.sm,
     },
     ranking: {
       gap: spacing.xs,

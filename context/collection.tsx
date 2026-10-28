@@ -20,8 +20,10 @@ type CollectionContextValue = {
 const CollectionContext = createContext<CollectionContextValue | null>(null);
 
 // Cada usuario tiene su propia colección y sus hallazgos guardados en el teléfono.
-const collectionKey = (userId: string) => `sleeve-collection-${userId}`;
-const findsKey = (userId: string) => `sleeve-finds-${userId}`;
+// v2: desde el Sprint 2 los ids de los discos son los de Discogs. Las colecciones guardadas con los ids
+// viejos no sirven, así que se empieza de nuevo desde las colecciones de prueba.
+const collectionKey = (userId: string) => `sleeve-collection-v2-${userId}`;
+const findsKey = (userId: string) => `sleeve-finds-v2-${userId}`;
 
 type Finds = Record<string, Find>;
 type Stored = { userId: string; ids: string[]; finds: Finds };
