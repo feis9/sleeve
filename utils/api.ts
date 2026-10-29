@@ -36,11 +36,16 @@ export function apiGet<T>(path: string): Promise<T> {
   return pedir<T>(path);
 }
 
+function conBody(method: 'POST' | 'PUT', body: unknown): RequestInit {
+  return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+}
+
 // POST con body JSON. Mismos errores que apiGet.
 export function apiPost<T>(path: string, body: unknown): Promise<T> {
-  return pedir<T>(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  return pedir<T>(path, conBody('POST', body));
+}
+
+// PUT con body JSON (crear o reemplazar). Mismos errores que apiGet.
+export function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return pedir<T>(path, conBody('PUT', body));
 }

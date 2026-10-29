@@ -21,7 +21,7 @@ export function ReviewCard({ review, showRelease = false }: Props) {
   const { getRelease } = useReleases();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const user = useUserById(review.userId);
+  const user = useUserById(review.userId) ?? review.author;
   const release = getRelease(review.releaseId);
   if (!user || !release) return null;
 

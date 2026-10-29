@@ -1,4 +1,4 @@
-import type { Review, User } from '@/types';
+import type { User } from '@/types';
 
 // Perfiles de prueba (nombre, color y colección de ejemplo). Las cuentas y contraseñas están en el
 // backend (backend/src/seed.ts): el login se valida en el servidor.
@@ -61,17 +61,6 @@ export const users: User[] = [
   },
 ];
 
-// Las reseñas de ejemplo hablaban de discos que ya no están en la demo. Las nuevas se escriben desde la app.
-export const reviews: Review[] = [];
-
 export function getUser(id: string) {
   return users.find((u) => u.id === id);
-}
-
-export function reviewsFor(releaseId: string) {
-  return reviews.filter((r) => r.releaseId === releaseId);
-}
-
-export function reviewsBy(userId: string) {
-  return reviews.filter((r) => r.userId === userId);
 }

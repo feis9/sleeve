@@ -140,6 +140,7 @@ const ES = {
   },
 
   reviewForm: {
+    saveFailedTitle: 'No pudimos guardar tu reseña',
     title: 'Tu reseña',
     stars: (n: number) => `${n} ${n === 1 ? 'estrella' : 'estrellas'}`,
     placeholder: '¿Cómo suena tu copia? Prensado, ruido de superficie, edición…',
@@ -308,6 +309,7 @@ const EN: Texts = {
   },
 
   reviewForm: {
+    saveFailedTitle: "We couldn't save your review",
     title: 'Your review',
     stars: (n) => `${n} ${n === 1 ? 'star' : 'stars'}`,
     placeholder: 'How does your copy sound? Pressing, surface noise, edition…',

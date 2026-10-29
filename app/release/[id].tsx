@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/chip';
 import { Cover } from '@/components/cover';
@@ -44,7 +44,11 @@ export default function ReleaseScreen() {
   const { getRelease, status } = useReleases();
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
-  const { reviewsFor, myReviewFor, saveReview } = useReviews();
+  const { reviewsFor, myReviewFor, saveReview, refresh } = useReviews();
+  // Al abrir un disco se vuelven a pedir las reseñas: pueden haber escrito otras desde otro teléfono.
+  useEffect(() => {
+    refresh();
+  }, [id, refresh]);
   const [resenando, setResenando] = useState(false);
 
   const release = getRelease(id);
@@ -181,9 +185,10 @@ export default function ReleaseScreen() {
         initialRating={miResena?.rating}
         initialBody={miResena?.body}
         onCancel={() => setResenando(false)}
-        onSubmit={(rating, body) => {
-          saveReview(release.id, rating, body);
-          setResenando(false);
+        onSubmit={async (rating, body) => {
+          // Si no se pudo guardar, el formulario queda abierto con lo escrito.
+          if (await saveReview(release.id, rating, body)) setResenando(false);
+          else Alert.alert(texts.reviewForm.saveFailedTitle, texts.catalog.offline);
         }}
       />
     </ScrollView>
