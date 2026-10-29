@@ -18,7 +18,8 @@ import { useReviews } from '@/context/reviews';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
-type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }>;
+// 'not-saved': el GPS respondió pero el backend no guardó el hallazgo.
+type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }> | { status: 'not-saved' };
 
 
 function RatingBox({ label, value, caption }: { label: string; value: string; caption: string }) {
@@ -41,7 +42,20 @@ export default function ReleaseScreen() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { has, add, remove, findFor, saveFind } = useCollection();
-  const { getRelease, status } = useReleases();
+  const { getRelease, status, ensureReleases } = useReleases();
+  // Un disco que no está en el catálogo (de la colección de otro, de una reseña) se pide al backend.
+  // Guarda para qué id ya terminó la búsqueda: si cambia el id, vuelve a "buscando" sin tocar el estado.
+  const [buscado, setBuscado] = useState<string | null>(null);
+  const buscando = buscado !== id;
+  useEffect(() => {
+    let cancelado = false;
+    ensureReleases([id]).finally(() => {
+      if (!cancelado) setBuscado(id);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [id, ensureReleases]);
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
   const { reviewsFor, myReviewFor, saveReview, refresh } = useReviews();
@@ -56,7 +70,7 @@ export default function ReleaseScreen() {
     return (
       <View style={styles.notFound}>
         {/* Mientras llegan los discos del backend todavía no se sabe si existe. */}
-        <Text style={styles.muted}>{status === 'cargando' ? texts.catalog.loading : texts.release.notFound}</Text>
+        <Text style={styles.muted}>{status === 'cargando' || buscando ? texts.catalog.loading : texts.release.notFound}</Text>
       </View>
     );
   }
@@ -71,19 +85,23 @@ export default function ReleaseScreen() {
   const miResena = myReviewFor(release.id);
 
   // Escanear → identificar → registrar dónde. El disco se agrega al instante y la ubicación llega después.
+  // Si el backend no guarda el disco, se deshace y no se pide la ubicación.
   async function agregar(id: string) {
-    add(id);
     setAviso(null);
+    if (!(await add(id))) {
+      Alert.alert(texts.release.saveFailedTitle, texts.catalog.offline);
+      return;
+    }
     setUbicando(true);
     const resultado = await getCurrentFind();
     setUbicando(false);
-    if (resultado.status === 'ok') saveFind(id, resultado.find);
-    else setAviso(resultado);
+    if (resultado.status !== 'ok') setAviso(resultado);
+    else if (!(await saveFind(id, resultado.find))) setAviso({ status: 'not-saved' });
   }
 
-  function quitar(id: string) {
-    remove(id);
+  async function quitar(id: string) {
     setAviso(null);
+    if (!(await remove(id))) Alert.alert(texts.release.saveFailedTitle, texts.catalog.offline);
   }
 
   return (

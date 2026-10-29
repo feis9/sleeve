@@ -28,6 +28,8 @@ async function pedir<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_URL) throw new Error('No se conoce la dirección del backend');
   const response = await conTimeout(fetch(`${API_URL}${path}`, init), TIMEOUT_MS);
   if (!response.ok) throw new ApiError(`El backend respondió ${response.status}`, response.status);
+  // 204 (DELETE) no trae body.
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 
@@ -48,4 +50,9 @@ export function apiPost<T>(path: string, body: unknown): Promise<T> {
 // PUT con body JSON (crear o reemplazar). Mismos errores que apiGet.
 export function apiPut<T>(path: string, body: unknown): Promise<T> {
   return pedir<T>(path, conBody('PUT', body));
+}
+
+// DELETE. Mismos errores que apiGet.
+export function apiDelete(path: string): Promise<void> {
+  return pedir<void>(path, { method: 'DELETE' });
 }

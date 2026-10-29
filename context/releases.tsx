@@ -22,6 +22,9 @@ type ReleasesContextValue = {
   releasesByBarcode: (barcode: string) => Release[];
   // Busca el código en Discogs (a través del backend) y suma al catálogo las ediciones que encuentre.
   searchBarcode: (barcode: string) => Promise<BarcodeSearch>;
+  // Pide al backend los discos que todavía no están en el catálogo (de la colección de otro usuario,
+  // de una reseña o de un disco abierto desde otro lado). Resuelve cuando terminaron de llegar.
+  ensureReleases: (ids: string[]) => Promise<void>;
 };
 
 // Última copia de los discos (los de la demo y los escaneados), para abrir la app sin conexión
@@ -70,6 +73,8 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
   // Copia del catálogo para searchBarcode: así la función no cambia con cada disco nuevo
   // y la pantalla de Buscar no repite la búsqueda.
   const conocidos = useRef<Release[]>([]);
+  // Ids que ya se están pidiendo, para no pedir dos veces el mismo disco.
+  const pedidos = useRef(new Set<string>());
 
   useEffect(() => {
     conocidos.current = releases;
@@ -142,6 +147,17 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const ensureReleases = useCallback(async (ids: string[]) => {
+    const conocidosIds = new Set(conocidos.current.map((r) => r.id));
+    const faltan = [...new Set(ids)].filter((id) => !conocidosIds.has(id) && !pedidos.current.has(id));
+    if (faltan.length === 0) return;
+    faltan.forEach((id) => pedidos.current.add(id));
+    const { traidas, fallidas } = await pedirEdiciones(faltan);
+    faltan.forEach((id) => pedidos.current.delete(id));
+    avisarFallidas(fallidas);
+    if (traidas.length > 0) setReleases((actuales) => unir(actuales, traidas));
+  }, []);
+
   const value = useMemo<ReleasesContextValue>(() => {
     const porId = new Map(releases.map((r) => [r.id, r]));
     return {
@@ -150,8 +166,9 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
       getRelease: (id) => porId.get(id),
       releasesByBarcode: (barcode) => conCodigo(releases, barcode),
       searchBarcode,
+      ensureReleases,
     };
-  }, [releases, status, searchBarcode]);
+  }, [releases, status, searchBarcode, ensureReleases]);
 
   return <ReleasesContext.Provider value={value}>{children}</ReleasesContext.Provider>;
 }

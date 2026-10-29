@@ -9,8 +9,7 @@ import { Stat } from '@/components/stat';
 import { fontSize, spacing, type Palette } from '@/constants/theme';
 import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
-import { useCollection, useRanking } from '@/context/collection';
-import { useCurrentUser, useUserById } from '@/context/auth';
+import { useRanking, useUserById, useUserCollection } from '@/context/collection';
 import { useReviews } from '@/context/reviews';
 import type { Release } from '@/types';
 
@@ -20,11 +19,10 @@ type Tab = 'coleccion' | 'resenas';
 export function ProfileView({ userId }: { userId: string }) {
   const { colors } = useTheme();
   const texts = useTexts();
-  const me = useCurrentUser();
   const { reviewsBy } = useReviews();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { ids } = useCollection();
+  const userIds = useUserCollection(userId);
   const { getRelease } = useReleases();
   const ranking = useRanking();
   const itemSize = useGridItemSize();
@@ -35,8 +33,7 @@ export function ProfileView({ userId }: { userId: string }) {
     return <Text style={styles.empty}>{texts.profile.notFound}</Text>;
   }
 
-  const isMe = userId === me.id;
-  const collection = (isMe ? ids : user.collection)
+  const collection = (userIds ?? [])
     .map((id) => getRelease(id))
     .filter((r): r is Release => r !== undefined);
   const userReviews = reviewsBy(userId);

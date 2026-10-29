@@ -1,10 +1,4 @@
-import type { User } from '@/types';
-
-// Perfiles de prueba (nombre, color y colección de ejemplo). Las cuentas y contraseñas están en el
-// backend (backend/src/seed.ts): el login se valida en el servidor.
-// Los discos ya no están acá: los datos de cada edición vienen de Discogs a través del backend.
-export const ME_ID = 'u-luca';
-
+// Los discos de la demo. Usuarios, colecciones y reseñas están en el backend (backend/src/seed.ts).
 // Ediciones de la demo, por número de release de Discogs. Título, tracklist, país y tapa los trae
 // el backend (GET /api/discogs/releases/:id). En la app, el id de cada disco es este número como texto.
 export const DEMO_RELEASE_IDS = [
@@ -22,45 +16,3 @@ export const DEMO_RELEASE_IDS = [
   25146217, // Use Your Illusion II. Mismo código de barras que la edición europea.
   6546645, // The Miseducation Of Lauryn Hill. Discogs no publica las duraciones de este prensado.
 ];
-
-export const users: User[] = [
-  {
-    id: ME_ID,
-    username: 'lucaf',
-    name: 'Luca Faccennini',
-    avatarColor: '#E8A33D',
-    collection: ['15527003', '4345204', '6546645'],
-  },
-  {
-    id: 'u-mica',
-    username: 'mica.spins',
-    name: 'Micaela Ruiz',
-    avatarColor: '#C0587E',
-    collection: ['1517028', '25128898', '30106898', '6546645', '15527003', '4345204'],
-  },
-  {
-    id: 'u-tomas',
-    username: 'tomas_crate',
-    name: 'Tomás Vidal',
-    avatarColor: '#4F8A8B',
-    collection: ['8487517', '25146217', '30170624', '4345204', '1517028'],
-  },
-  {
-    id: 'u-sofi',
-    username: 'sofi33rpm',
-    name: 'Sofía Paz',
-    avatarColor: '#7B6CF6',
-    collection: ['35395852', '6546645', '15527003', '25128898'],
-  },
-  {
-    id: 'u-juan',
-    username: 'juanjazz',
-    name: 'Juan Ortega',
-    avatarColor: '#3E7CB1',
-    collection: ['4345204', '30106898'],
-  },
-];
-
-export function getUser(id: string) {
-  return users.find((u) => u.id === id);
-}

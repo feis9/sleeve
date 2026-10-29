@@ -29,7 +29,6 @@ export type User = {
   username: string;
   name: string;
   avatarColor: string;
-  collection: string[];
 };
 
 export type Review = {

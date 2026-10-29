@@ -4,9 +4,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useUserById } from '@/context/collection';
 import { useReleases } from '@/context/releases';
 import { useTheme } from '@/context/settings';
-import { useCurrentUser, useUserById } from '@/context/auth';
+import { useCurrentUser } from '@/context/auth';
 import type { Review } from '@/types';
 
 type Props = {

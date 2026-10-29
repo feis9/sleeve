@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { getUser } from '@/data/mock';
 import type { User } from '@/types';
 import { ApiError, apiPost } from '@/utils/api';
 
@@ -31,9 +30,9 @@ const STORAGE_KEY = 'sleeve-session-v2';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Las cuentas de prueba arrancan con su colección de ejemplo; las nuevas, vacías.
+// Lo que la app guarda del usuario: el email no se muestra en ningún lado.
 function toUser(u: BackendUser): User {
-  return { id: u.id, username: u.username, name: u.name, avatarColor: u.avatarColor, collection: getUser(u.id)?.collection ?? [] };
+  return { id: u.id, username: u.username, name: u.name, avatarColor: u.avatarColor };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -110,10 +109,4 @@ export function useCurrentUser(): User {
   const { user } = useAuth();
   if (!user) throw new Error('useCurrentUser requiere una sesión iniciada');
   return user;
-}
-
-// Un usuario por id: el logueado sale de la sesión (puede no estar en el mock) y los demás, del mock.
-export function useUserById(id: string): User | undefined {
-  const { user } = useAuth();
-  return user && user.id === id ? user : getUser(id);
 }

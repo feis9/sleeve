@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/context/auth';
+import { useReleases } from '@/context/releases';
 import type { Review } from '@/types';
 import { apiGet, apiPut } from '@/utils/api';
 
@@ -42,23 +43,26 @@ function toReview(r: BackendReview): Review {
     body: r.body,
     // Como antes en la app: la fecha que se muestra es la de la última vez que se escribió.
     createdAt: r.updatedAt.slice(0, 10),
-    author: { ...r.usuario, collection: [] },
+    author: r.usuario,
   };
 }
 
 export function ReviewsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { ensureReleases } = useReleases();
   const [reviews, setReviews] = useState<Review[]>([]);
 
   const refresh = useCallback(async () => {
     try {
       const nuevas = (await apiGet<BackendReview[]>('/api/resenas')).map(toReview);
       setReviews(nuevas);
+      // Una reseña puede ser de un disco que este teléfono todavía no tiene.
+      ensureReleases(nuevas.map((r) => r.releaseId));
       AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevas)).catch(() => {});
     } catch {
       // Sin backend se quedan las que había (la copia guardada o las de la última carga).
     }
-  }, []);
+  }, [ensureReleases]);
 
   // Al abrir la app: primero la copia guardada, después las del backend.
   useEffect(() => {
