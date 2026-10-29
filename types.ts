@@ -22,6 +22,9 @@ export type Release = {
   // Tapa original de Discogs. Si es null, la app dibuja el placeholder.
   coverUrl: string | null;
   tracklist: Track[];
+  // Cuándo el backend consultó esta edición a Discogs (ISO 8601). Los términos de Discogs no permiten
+  // mostrar datos con más de 6 horas: ver utils/vigencia.ts.
+  consultadaEn: string;
 };
 
 export type User = {
