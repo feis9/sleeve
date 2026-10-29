@@ -1,75 +1,108 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/context/auth';
-import { reviews as mockReviews } from '@/data/mock';
+import { useReleases } from '@/context/releases';
 import type { Review } from '@/types';
+import { apiGet, apiPut } from '@/utils/api';
 
 type ReviewsContextValue = {
   reviewsFor: (releaseId: string) => Review[];
   reviewsBy: (userId: string) => Review[];
   // La reseña del usuario logueado para esa edición (una por edición; escribir otra la reemplaza).
   myReviewFor: (releaseId: string) => Review | undefined;
-  saveReview: (releaseId: string, rating: number, body: string) => void;
+  // Guarda en el backend. false si no se pudo (sin conexión o datos rechazados).
+  saveReview: (releaseId: string, rating: number, body: string) => Promise<boolean>;
+  // Vuelve a pedir las reseñas, para ver las que escribieron otros desde que se abrió la app.
+  refresh: () => void;
 };
 
-// Reseñas escritas en este teléfono. Sin backend no se comparten entre dispositivos.
-const STORAGE_KEY = 'sleeve-reviews';
+// Reseña como la devuelve el backend (GET /api/resenas), con su autor sin contraseña.
+type BackendReview = {
+  id: string;
+  usuarioId: string;
+  releaseId: string;
+  rating: number;
+  body: string;
+  updatedAt: string;
+  usuario: { id: string; username: string; name: string; avatarColor: string };
+};
+
+// Copia de las reseñas del backend, para verlas sin conexión. v3: desde la tarea 13 las reseñas
+// están en el backend y se comparten entre teléfonos; las de v2 eran solo de este teléfono.
+const STORAGE_KEY = 'sleeve-reviews-v3';
 
 const ReviewsContext = createContext<ReviewsContextValue | undefined>(undefined);
 
-const key = (r: Pick<Review, 'userId' | 'releaseId'>) => `${r.userId}:${r.releaseId}`;
+function toReview(r: BackendReview): Review {
+  return {
+    id: r.id,
+    userId: r.usuarioId,
+    releaseId: r.releaseId,
+    rating: r.rating,
+    body: r.body,
+    // Como antes en la app: la fecha que se muestra es la de la última vez que se escribió.
+    createdAt: r.updatedAt.slice(0, 10),
+    author: r.usuario,
+  };
+}
 
 export function ReviewsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [local, setLocal] = useState<Review[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const { ensureReleases } = useReleases();
+  const [reviews, setReviews] = useState<Review[]>([]);
 
+  const refresh = useCallback(async () => {
+    try {
+      const nuevas = (await apiGet<BackendReview[]>('/api/resenas')).map(toReview);
+      setReviews(nuevas);
+      // Una reseña puede ser de un disco que este teléfono todavía no tiene.
+      ensureReleases(nuevas.map((r) => r.releaseId));
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevas)).catch(() => {});
+    } catch {
+      // Sin backend se quedan las que había (la copia guardada o las de la última carga).
+    }
+  }, [ensureReleases]);
+
+  // Al abrir la app: primero la copia guardada, después las del backend.
   useEffect(() => {
-    async function load() {
+    async function cargar() {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) setLocal(JSON.parse(raw) as Review[]);
+        if (raw) setReviews((actuales) => (actuales.length > 0 ? actuales : (JSON.parse(raw) as Review[])));
       } catch {
         // Lectura best-effort.
-      } finally {
-        setIsHydrated(true);
       }
+      refresh();
     }
-    load();
-  }, []);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(local)).catch(() => {});
-  }, [local, isHydrated]);
+    cargar();
+  }, [refresh]);
 
   const value = useMemo<ReviewsContextValue>(() => {
-    // Las reseñas locales pisan a las de ejemplo del mismo usuario y edición.
-    const localKeys = new Set(local.map(key));
-    const all = [...local, ...mockReviews.filter((r) => !localKeys.has(key(r)))];
+    // El backend ya las manda de la más reciente a la más vieja; se ordena igual por las que se agregan acá.
     const byDate = (a: Review, b: Review) => b.createdAt.localeCompare(a.createdAt);
 
-    function saveReview(releaseId: string, rating: number, body: string) {
-      if (!user) return;
-      const review: Review = {
-        id: `rv-${user.id}-${releaseId}`,
-        userId: user.id,
-        releaseId,
-        rating,
-        body: body.trim(),
-        createdAt: new Date().toISOString().slice(0, 10),
-      };
-      setLocal((prev) => [review, ...prev.filter((r) => key(r) !== key(review))]);
+    async function saveReview(releaseId: string, rating: number, body: string) {
+      if (!user) return false;
+      try {
+        const guardada = toReview(
+          await apiPut<BackendReview>(`/api/usuarios/${encodeURIComponent(user.id)}/resenas/${releaseId}`, { rating, body }),
+        );
+        setReviews((prev) => [guardada, ...prev.filter((r) => r.id !== guardada.id)]);
+        return true;
+      } catch {
+        return false;
+      }
     }
 
     return {
-      reviewsFor: (releaseId) => all.filter((r) => r.releaseId === releaseId).sort(byDate),
-      reviewsBy: (userId) => all.filter((r) => r.userId === userId).sort(byDate),
-      myReviewFor: (releaseId) => (user ? all.find((r) => r.userId === user.id && r.releaseId === releaseId) : undefined),
+      reviewsFor: (releaseId) => reviews.filter((r) => r.releaseId === releaseId).sort(byDate),
+      reviewsBy: (userId) => reviews.filter((r) => r.userId === userId).sort(byDate),
+      myReviewFor: (releaseId) => (user ? reviews.find((r) => r.userId === user.id && r.releaseId === releaseId) : undefined),
       saveReview,
+      refresh,
     };
-  }, [local, user]);
+  }, [reviews, user, refresh]);
 
   return <ReviewsContext.Provider value={value}>{children}</ReviewsContext.Provider>;
 }

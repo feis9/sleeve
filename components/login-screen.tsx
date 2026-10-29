@@ -1,8 +1,20 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputInstance,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
+import { RegisterScreen } from '@/components/register-screen';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { useTexts, useTheme } from '@/context/settings';
@@ -26,18 +38,30 @@ export function LoginScreen() {
   // Los errores aparecen recién después del primer intento, y se recalculan mientras el usuario corrige.
   const [intentado, setIntentado] = useState(false);
   // Para saltar del usuario a la contraseña con el botón "siguiente" del teclado.
-  const passwordRef = useRef<TextInput>(null);
+  // Desde RN 0.88 el tipo de la instancia es TextInputInstance: TextInput es el componente, no la instancia.
+  const passwordRef = useRef<TextInputInstance>(null);
+
+  // true: se muestra el registro en lugar del login.
+  const [creandoCuenta, setCreandoCuenta] = useState(false);
 
   const errorIdentifier = intentado ? validateIdentifier(identifier, texts.validation) : null;
   const errorPassword = intentado ? validatePassword(password, texts.validation) : null;
 
-  function ingresar() {
+  // Mientras espera al backend: evita mandar dos veces y cambia el texto del botón.
+  const [enviando, setEnviando] = useState(false);
+
+  async function ingresar() {
     setIntentado(true);
+    if (enviando) return;
     if (validateIdentifier(identifier, texts.validation) || validatePassword(password, texts.validation)) return;
-    if (!login(identifier, password)) {
-      Alert.alert(texts.login.failedTitle, texts.login.failedText);
-    }
+    setEnviando(true);
+    const resultado = await login(identifier, password);
+    setEnviando(false);
+    if (resultado === 'invalid') Alert.alert(texts.login.failedTitle, texts.login.failedText);
+    if (resultado === 'offline') Alert.alert(texts.login.failedTitle, texts.catalog.offline);
   }
+
+  if (creandoCuenta) return <RegisterScreen onBack={() => setCreandoCuenta(false)} />;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -85,8 +109,10 @@ export function LoginScreen() {
             />
             {errorPassword && <Text style={styles.error}>{errorPassword}</Text>}
 
-            <PrimaryButton label={texts.login.submit} icon="log-in-outline" onPress={ingresar} />
+            <PrimaryButton label={enviando ? texts.login.submitting : texts.login.submit} icon="log-in-outline" onPress={ingresar} />
           </View>
+
+          <PrimaryButton label={texts.login.noAccount} variant="outline" onPress={() => setCreandoCuenta(true)} />
 
           <Text style={styles.demo}>{texts.login.demo}</Text>
         </ScrollView>

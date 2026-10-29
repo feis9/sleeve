@@ -8,14 +8,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Cover } from '@/components/cover';
 import { PrimaryButton } from '@/components/primary-button';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
-import { flagFor, releasesByBarcode } from '@/data/mock';
+import { flagFor } from '@/data/countries';
 import type { Release } from '@/types';
+import { joinMeta } from '@/utils/format';
 
 // Códigos que traen las fundas: EAN-13 (Europa, Argentina) y UPC-A (EE. UU.), más sus versiones cortas.
 const BARCODE_TYPES = ['ean13', 'upc_a', 'ean8', 'upc_e'] as const;
 
-type Lectura = { codigo: string; candidatos: Release[] };
+// candidatos: null mientras se consulta a Discogs. sinConexion: no se pudo consultar y los candidatos
+// salen de los discos guardados en el teléfono.
+type Lectura = { codigo: string; candidatos: Release[] | null; sinConexion: boolean };
 
 export default function EscanearScreen() {
   const { colors } = useTheme();
@@ -23,19 +27,27 @@ export default function EscanearScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   // [estado del permiso (null mientras se consulta), función para pedirlo]
+  const { searchBarcode } = useReleases();
   const [permiso, pedirPermiso] = useCameraPermissions();
   const [lectura, setLectura] = useState<Lectura | null>(null);
   // La cámara puede reportar el mismo código varias veces antes de que React actualice el estado.
   // La ref cambia al instante y corta las lecturas repetidas.
   const yaLeyo = useRef(false);
+  // Número de la lectura actual: si el usuario escanea otro antes de que responda Discogs,
+  // la respuesta de la lectura anterior se descarta.
+  const lecturaActual = useRef(0);
 
-  function alEscanear({ data }: BarcodeScanningResult) {
+  async function alEscanear({ data }: BarcodeScanningResult) {
     if (yaLeyo.current) return;
     yaLeyo.current = true;
-    setLectura({ codigo: data, candidatos: releasesByBarcode(data) });
+    const numero = ++lecturaActual.current;
+    setLectura({ codigo: data, candidatos: null, sinConexion: false });
+    const { releases, sinConexion } = await searchBarcode(data);
+    if (numero === lecturaActual.current) setLectura({ codigo: data, candidatos: releases, sinConexion });
   }
 
   function escanearOtro() {
+    lecturaActual.current++;
     yaLeyo.current = false;
     setLectura(null);
   }
@@ -107,21 +119,27 @@ export default function EscanearScreen() {
       {lectura && (
         <View style={styles.sheetOverlay}>
           <View style={styles.sheet}>
-            {lectura.candidatos.length > 0 ? (
+            {lectura.candidatos === null ? (
+              <>
+                <Text style={styles.sheetTitle}>{texts.catalog.searching}</Text>
+                <Text style={styles.sheetSubtitle}>{texts.scanner.codeRead(lectura.codigo)}</Text>
+              </>
+            ) : lectura.candidatos.length > 0 ? (
               <>
                 <Text style={styles.sheetTitle}>
                   {texts.scanner.found(lectura.candidatos.length)}
                 </Text>
                 <Text style={styles.sheetSubtitle}>{texts.scanner.pickYours}</Text>
+                {lectura.sinConexion && <Text style={styles.sheetSubtitle}>{texts.catalog.discogsOffline}</Text>}
                 {lectura.candidatos.map((r) => (
                   <Pressable key={r.id} style={styles.candidate} onPress={() => elegir(r.id)}>
                     <Cover release={r} size={48} />
                     <View style={styles.candidateInfo}>
                       <Text style={styles.candidateTitle} numberOfLines={1}>
-                        {flagFor(r.country)} {r.country} · {r.year}
+                        {flagFor(r.country)} {joinMeta(r.country, r.year)}
                       </Text>
                       <Text style={styles.candidateMeta} numberOfLines={1}>
-                        {r.label} · {r.format}
+                        {joinMeta(r.label, r.format)}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -132,6 +150,7 @@ export default function EscanearScreen() {
               <>
                 <Text style={styles.sheetTitle}>{texts.scanner.notFound}</Text>
                 <Text style={styles.sheetSubtitle}>{texts.scanner.codeRead(lectura.codigo)}</Text>
+                {lectura.sinConexion && <Text style={styles.sheetSubtitle}>{texts.catalog.discogsOffline}</Text>}
                 <PrimaryButton label={texts.scanner.searchManually} icon="search" onPress={buscarManualmente} />
               </>
             )}

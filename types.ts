@@ -4,19 +4,27 @@ export type Track = {
   duration?: string;
 };
 
+// Una edición, tal como la devuelve el backend (GET /api/discogs/releases/:id).
+// Lo que Discogs puede no tener llega como null.
 export type Release = {
+  // Número de release de Discogs como texto (las rutas de Expo Router usan texto).
   id: string;
+  discogsId: number;
   title: string;
   artist: string;
-  year: number;
-  country: string;
-  label: string;
-  format: string;
-  genre: string;
-  barcode?: string;
-  coverColor: string;
-  discogsRating: number;
+  year: number | null;
+  country: string | null;
+  label: string | null;
+  format: string | null;
+  genre: string | null;
+  barcode: string | null;
+  discogsRating: number | null;
+  // Tapa original de Discogs. Si es null, la app dibuja el placeholder.
+  coverUrl: string | null;
   tracklist: Track[];
+  // Cuándo el backend consultó esta edición a Discogs (ISO 8601). Los términos de Discogs no permiten
+  // mostrar datos con más de 6 horas: ver utils/vigencia.ts.
+  consultadaEn: string;
 };
 
 export type User = {
@@ -24,7 +32,6 @@ export type User = {
   username: string;
   name: string;
   avatarColor: string;
-  collection: string[];
 };
 
 export type Review = {
@@ -33,7 +40,10 @@ export type Review = {
   releaseId: string;
   rating: number;
   body: string;
+  // Fecha de la última edición, "2026-10-28".
   createdAt: string;
+  // Autor según el backend: sirve cuando no está en data/mock.ts (una cuenta creada con el registro).
+  author?: User;
 };
 // Dónde y cuándo agregaste un disco a tu colección (GPS del teléfono).
 export type Find = {
@@ -43,10 +53,4 @@ export type Find = {
   place: string | null;
   // ISO 8601
   date: string;
-};
-
-export type Credential = {
-  userId: string;
-  email: string;
-  password: string;
 };

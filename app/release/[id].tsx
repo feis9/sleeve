@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/chip';
 import { Cover } from '@/components/cover';
@@ -11,14 +11,18 @@ import { ReviewCard } from '@/components/review-card';
 import { ReviewModal } from '@/components/review-modal';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import { useCollection } from '@/context/collection';
 import { useReviews } from '@/context/reviews';
-import { getRelease } from '@/data/mock';
 import { findPlaceLabel, formatFindDate, getCurrentFind, type FindResult } from '@/utils/location';
 
+// Texto exacto que piden los términos de uso de la API de Discogs. Va igual en los dos idiomas.
+const DISCOGS_CREDIT = 'Data provided by Discogs.';
+
 // Por qué el disco quedó sin ubicación. La ubicación es un plus: nunca impide agregarlo.
-type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }>;
+// 'not-saved': el GPS respondió pero el backend no guardó el hallazgo.
+type AvisoUbicacion = Exclude<FindResult, { status: 'ok' }> | { status: 'not-saved' };
 
 
 function RatingBox({ label, value, caption }: { label: string; value: string; caption: string }) {
@@ -41,16 +45,35 @@ export default function ReleaseScreen() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { has, add, remove, findFor, saveFind } = useCollection();
+  const { getRelease, status, ensureReleases } = useReleases();
+  // Un disco que no está en el catálogo (de la colección de otro, de una reseña) se pide al backend.
+  // Guarda para qué id ya terminó la búsqueda: si cambia el id, vuelve a "buscando" sin tocar el estado.
+  const [buscado, setBuscado] = useState<string | null>(null);
+  const buscando = buscado !== id;
+  useEffect(() => {
+    let cancelado = false;
+    ensureReleases([id]).finally(() => {
+      if (!cancelado) setBuscado(id);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [id, ensureReleases]);
   const [ubicando, setUbicando] = useState(false);
   const [aviso, setAviso] = useState<AvisoUbicacion | null>(null);
-  const { reviewsFor, myReviewFor, saveReview } = useReviews();
+  const { reviewsFor, myReviewFor, saveReview, refresh } = useReviews();
+  // Al abrir un disco se vuelven a pedir las reseñas: pueden haber escrito otras desde otro teléfono.
+  useEffect(() => {
+    refresh();
+  }, [id, refresh]);
   const [resenando, setResenando] = useState(false);
 
   const release = getRelease(id);
   if (!release) {
     return (
       <View style={styles.notFound}>
-        <Text style={styles.muted}>{texts.release.notFound}</Text>
+        {/* Mientras llegan los discos del backend todavía no se sabe si existe. */}
+        <Text style={styles.muted}>{status === 'cargando' || buscando ? texts.catalog.loading : texts.release.notFound}</Text>
       </View>
     );
   }
@@ -65,19 +88,23 @@ export default function ReleaseScreen() {
   const miResena = myReviewFor(release.id);
 
   // Escanear → identificar → registrar dónde. El disco se agrega al instante y la ubicación llega después.
+  // Si el backend no guarda el disco, se deshace y no se pide la ubicación.
   async function agregar(id: string) {
-    add(id);
     setAviso(null);
+    if (!(await add(id))) {
+      Alert.alert(texts.release.saveFailedTitle, texts.catalog.offline);
+      return;
+    }
     setUbicando(true);
     const resultado = await getCurrentFind();
     setUbicando(false);
-    if (resultado.status === 'ok') saveFind(id, resultado.find);
-    else setAviso(resultado);
+    if (resultado.status !== 'ok') setAviso(resultado);
+    else if (!(await saveFind(id, resultado.find))) setAviso({ status: 'not-saved' });
   }
 
-  function quitar(id: string) {
-    remove(id);
+  async function quitar(id: string) {
     setAviso(null);
+    if (!(await remove(id))) Alert.alert(texts.release.saveFailedTitle, texts.catalog.offline);
   }
 
   return (
@@ -90,14 +117,27 @@ export default function ReleaseScreen() {
       </View>
 
       <View style={styles.chips}>
-        <Chip label={String(release.year)} />
-        <Chip label={release.country} />
-        <Chip label={release.label} />
-        <Chip label={release.format} />
+        {/* Solo los datos que Discogs tiene. */}
+        {release.year !== null && <Chip label={String(release.year)} />}
+        {release.country !== null && <Chip label={release.country} />}
+        {release.label !== null && <Chip label={release.label} />}
+        {release.format !== null && <Chip label={release.format} />}
       </View>
+      {/* Lo exigen los términos de uso de la API de Discogs: el aviso, en inglés, al lado de los datos
+          y con link a la página de la edición en discogs.com. */}
+      <Text
+        style={[styles.muted, styles.link]}
+        onPress={() => Linking.openURL(`https://www.discogs.com/release/${release.discogsId}`)}
+        accessibilityRole="link">
+        {DISCOGS_CREDIT}
+      </Text>
 
       <View style={styles.ratings}>
-        <RatingBox label="Discogs" value={release.discogsRating.toFixed(1)} caption={texts.release.community} />
+        <RatingBox
+          label="Discogs"
+          value={release.discogsRating !== null ? release.discogsRating.toFixed(1) : '-'}
+          caption={texts.release.community}
+        />
         <RatingBox
           label="Sleeve"
           value={sleeveRating}
@@ -174,9 +214,10 @@ export default function ReleaseScreen() {
         initialRating={miResena?.rating}
         initialBody={miResena?.body}
         onCancel={() => setResenando(false)}
-        onSubmit={(rating, body) => {
-          saveReview(release.id, rating, body);
-          setResenando(false);
+        onSubmit={async (rating, body) => {
+          // Si no se pudo guardar, el formulario queda abierto con lo escrito.
+          if (await saveReview(release.id, rating, body)) setResenando(false);
+          else Alert.alert(texts.reviewForm.saveFailedTitle, texts.catalog.offline);
         }}
       />
     </ScrollView>

@@ -9,10 +9,10 @@ import { GridCover } from '@/components/grid-cover';
 import { RankingRow } from '@/components/ranking-row';
 import { SectionHeader } from '@/components/section-header';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
+import { useReleases } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import { useRanking } from '@/context/collection';
 import { useCurrentUser } from '@/context/auth';
-import { releases } from '@/data/mock';
 
 // Isologo horizontal: versión clara u oscura según el tema (mismos archivos que el branding).
 const LOGO = {
@@ -27,6 +27,7 @@ export default function InicioScreen() {
 
   const ranking = useRanking();
   const me = useCurrentUser();
+  const { releases, status } = useReleases();
   const recientes = releases.slice(0, 6);
 
   return (
@@ -49,6 +50,12 @@ export default function InicioScreen() {
         </Pressable>
 
         <SectionHeader title={texts.home.recent} />
+        {/* Sin discos todavía: o están llegando del backend o el backend no respondió. */}
+        {recientes.length === 0 && (
+          <Text style={styles.catalogMessage}>
+            {status === 'sin-conexion' ? texts.catalog.offline : texts.catalog.loading}
+          </Text>
+        )}
         <FlatList
           horizontal
           data={recientes}
@@ -121,6 +128,10 @@ const createStyles = (colors: Palette) =>
     },
     carousel: {
       gap: spacing.md,
+    },
+    catalogMessage: {
+      color: colors.muted,
+      fontSize: fontSize.sm,
     },
     ranking: {
       gap: spacing.xs,

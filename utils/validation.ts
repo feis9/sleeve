@@ -8,6 +8,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_RE = /^[a-z0-9._]{3,30}$/i;
 
 export const PASSWORD_MIN = 6;
+export const NAME_MAX = 50;
 export const REVIEW_MIN = 10;
 export const REVIEW_MAX = 500;
 
@@ -17,6 +18,26 @@ export function validateIdentifier(value: string, m: Messages): string | null {
   if (!v) return m.identifierRequired;
   if (v.includes('@')) return EMAIL_RE.test(v) ? null : m.emailInvalid;
   return USERNAME_RE.test(v) ? null : m.usernameInvalid;
+}
+
+// Registro: mismas reglas que backend/src/usuarios.ts.
+export function validateName(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.nameRequired;
+  if (v.length > NAME_MAX) return m.nameLong(NAME_MAX);
+  return null;
+}
+
+export function validateUsername(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.usernameRequired;
+  return USERNAME_RE.test(v) ? null : m.usernameInvalid;
+}
+
+export function validateEmail(value: string, m: Messages): string | null {
+  const v = value.trim();
+  if (!v) return m.emailRequired;
+  return EMAIL_RE.test(v) ? null : m.emailInvalid;
 }
 
 export function validatePassword(value: string, m: Messages): string | null {
@@ -29,6 +50,13 @@ export function validatePassword(value: string, m: Messages): string | null {
 // Se aceptan espacios y guiones porque así viene impreso ("6 96998 02071 9").
 export function barcodeDigits(value: string) {
   return value.replace(/[\s-]/g, '');
+}
+
+// Deja solo dígitos y unifica UPC-A con EAN-13: iOS suele leer un UPC-A (12 dígitos)
+// como EAN-13 con un 0 adelante, así que '0' + 12 dígitos y los 12 dígitos son el mismo código.
+export function normalizeBarcode(code: string) {
+  const digits = code.replace(/\D/g, '');
+  return digits.length === 13 && digits.startsWith('0') ? digits.slice(1) : digits;
 }
 
 // Dígito verificador GTIN: desde la derecha (sin contar el verificador), pesos 3, 1, 3, 1…

@@ -13,5 +13,16 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  // backend/ es el servidor (Node), con su propio tsconfig. Definir exclude acá reemplaza el de
+  // expo/tsconfig.base, por eso se repiten sus entradas.
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "android",
+    "ios",
+    "backend"
   ]
 }

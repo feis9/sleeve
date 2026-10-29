@@ -10,7 +10,9 @@ type IconName = keyof typeof Ionicons.glyphMap;
 
 function tabIcon(name: IconName) {
   return function TabIcon({ color, size }: { color: ColorValue; size: number }) {
-    return <Ionicons name={name} size={size} color={color} />;
+    // Desde RN 0.88 ColorValue también puede ser null o un número, y Ionicons no los acepta:
+    // en esos casos usa su color por defecto.
+    return <Ionicons name={name} size={size} color={color === null || typeof color === 'number' ? undefined : color} />;
   };
 }
 
