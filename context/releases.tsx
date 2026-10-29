@@ -5,6 +5,7 @@ import { DEMO_RELEASE_IDS } from '@/data/mock';
 import type { Release } from '@/types';
 import { apiGet } from '@/utils/api';
 import { normalizeBarcode } from '@/utils/validation';
+import { vigente } from '@/utils/vigencia';
 
 // 'cargando': todavía no respondió el backend. 'listo': hay datos de Discogs de esta sesión.
 // 'sin-conexion': el backend no respondió; se muestra lo último guardado, si hay.
@@ -93,7 +94,9 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
       let guardados: Release[] = [];
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) guardados = JSON.parse(raw) as Release[];
+        // Solo las que se consultaron a Discogs hace menos de 6 horas (términos de uso de Discogs).
+        // Las demás se vuelven a pedir al backend cuando hacen falta.
+        if (raw) guardados = (JSON.parse(raw) as Release[]).filter((r) => vigente(r));
       } catch {
         // Lectura best-effort.
       }
@@ -132,7 +135,7 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
       ids = encontradas.map((e) => String(e.id));
     } catch {
       // Sin backend o sin Discogs: se busca entre los discos guardados en el teléfono.
-      return { releases: conCodigo(conocidos.current, codigo), sinConexion: true };
+      return { releases: conCodigo(conocidos.current.filter((r) => vigente(r)), codigo), sinConexion: true };
     }
     // La búsqueda trae un resumen de cada edición. Para mostrar tapa, país y sello como en el resto
     // de la app se pide el detalle de las que todavía no están en el catálogo.
