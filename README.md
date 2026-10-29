@@ -14,8 +14,9 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 - **Datos y tapas originales de Discogs**: título, artista, país, sello, formato, tracklist, puntaje de la comunidad y la tapa de cada edición.
 - **Registro del hallazgo con GPS**: al agregar un disco se guarda dónde y cuándo lo encontraste ("Encontrado en San Telmo, CABA").
 - **Mapa por edición**: el detalle de cada disco muestra el país de esa edición.
-- **Colección personal** guardada en el teléfono, separada por usuario.
-- **Reseñas por prensado**, de 1 a 5 estrellas, guardadas en el backend y compartidas entre teléfonos, y **ranking** de coleccionistas.
+- **Colección personal** guardada en el backend, con una copia en el teléfono para verla sin conexión.
+- **Reseñas por prensado**, de 1 a 5 estrellas, compartidas entre teléfonos. En el perfil, cada disco aparece con su reseña.
+- **Ranking** de coleccionistas y perfiles públicos.
 - **Login y registro** contra el backend, con email o usuario y contraseña. La sesión queda guardada en el dispositivo.
 - **Validaciones** en el login, el registro, la carga manual de códigos (incluye el dígito verificador) y las reseñas. El backend repite las del login y el registro.
 - **Idioma** castellano / inglés y **tema** claro / oscuro / según el sistema, desde Ajustes.
@@ -38,7 +39,8 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 ```
 App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de Discogs
                               │
-                              └── SQLite (Prisma): usuarios, reseñas y caché de ediciones
+                              └── SQLite (Prisma): usuarios, colecciones, hallazgos, reseñas
+                                                   y caché de ediciones
 ```
 
 - La app nunca le habla a Discogs: el token de Discogs vive solo en `backend/.env`, que no está en el repo.
@@ -56,6 +58,12 @@ App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de 
 | POST | `/api/registro` | `{ username, email, name, password }`. 201, 400 o 409 |
 | GET | `/api/resenas` | Reseñas con su autor. Filtros opcionales `?releaseId=` y `?usuarioId=` |
 | PUT | `/api/usuarios/:usuarioId/resenas/:releaseId` | `{ rating, body }`: crea o reemplaza la reseña de ese usuario para esa edición |
+| GET | `/api/usuarios/:id` | Perfil público (sin email ni contraseña) |
+| GET | `/api/usuarios/:id/coleccion` | Discos de la colección, con dónde se encontró cada uno |
+| PUT | `/api/usuarios/:id/coleccion/:releaseId` | Agrega el disco a la colección |
+| PUT | `/api/usuarios/:id/coleccion/:releaseId/hallazgo` | `{ latitude, longitude, place, date }`: dónde se encontró |
+| DELETE | `/api/usuarios/:id/coleccion/:releaseId` | Saca el disco de la colección (204) |
+| GET | `/api/ranking` | Usuarios ordenados por cantidad de discos |
 
 ## Cómo correrla
 
@@ -67,7 +75,7 @@ Requisitos: Node.js, la app **Expo Go** (SDK 58) en el teléfono y un token pers
 cd backend
 npm install
 cp .env.example .env      # y completar DISCOGS_TOKEN
-npm run db:init           # crea la base SQLite y carga las cuentas de prueba
+npm run db:init           # crea la base SQLite y carga las cuentas y colecciones de prueba
 npm run dev
 ```
 
@@ -114,9 +122,9 @@ app/            Pantallas y navegación (Expo Router): tabs, escáner, detalle, 
 components/     Componentes reutilizables (mapa, tarjetas, botones, login, registro, modal de reseña)
 context/        Estado global: ajustes (idioma y tema), discos, sesión, colección y reseñas
 constants/      Paleta de colores, espaciados y textos en castellano e inglés
-data/           Discos de la demo (ids de Discogs), perfiles de prueba y tabla de países
+data/           Discos de la demo (ids de Discogs) y tabla de países
 utils/          Conexión con el backend, ubicación (GPS), validaciones y formato
-backend/        Servidor Express: rutas, cliente de Discogs, usuarios, reseñas y base SQLite con Prisma
+backend/        Servidor Express: rutas, cliente de Discogs, usuarios, colecciones, reseñas y base SQLite con Prisma
 ```
 
 ## Limitaciones conocidas
@@ -124,7 +132,7 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, reseñas 
 - **Contraseñas en texto plano.** El login compara la contraseña de forma directa y no hay token de sesión: es una decisión de alcance del Sprint 2. En producción iría con hash (bcrypt o argon2), token de sesión y HTTPS.
 - **Backend local.** La app solo funciona con el backend corriendo en una computadora de la misma red Wi-Fi.
 - **Sin control de acceso en las rutas.** No hay token de sesión, así que el backend no verifica que quien escribe una reseña sea ese usuario.
-- **Colección en el teléfono.** La colección y los hallazgos todavía no se guardan en el backend, así que no se comparten entre dispositivos.
+- **Sin conexión, solo lectura.** Sin backend se ven la colección, las reseñas y el ranking guardados en el teléfono, pero no se pueden agregar discos ni escribir reseñas.
 
 ## Discogs
 
