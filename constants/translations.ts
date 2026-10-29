@@ -108,6 +108,8 @@ const ES = {
     account: 'Cuenta',
     loggedInAs: (username: string) => `Sesión iniciada como @${username}`,
     logout: 'Cerrar sesión',
+    about: 'Acerca de',
+    discogsData: 'Los datos de los discos (títulos, temas, sellos, países y tapas) vienen de Discogs.',
   },
 
   login: {
@@ -280,6 +282,8 @@ const EN: Texts = {
     account: 'Account',
     loggedInAs: (username) => `Signed in as @${username}`,
     logout: 'Sign out',
+    about: 'About',
+    discogsData: 'Record data (titles, tracks, labels, countries and covers) comes from Discogs.',
   },
 
   login: {
