@@ -7,6 +7,9 @@ import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { useAppSettings, type Language, type ThemePreference } from '@/context/settings';
 
+const DISCOGS_NOTICE =
+  "This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.";
+
 const TEMAS: ThemePreference[] = ['LIGHT', 'DARK', 'SYSTEM'];
 // Cada idioma se muestra en su propio idioma, así se reconoce aunque la app esté en el otro.
 const IDIOMAS: { key: Language; label: string }[] = [
@@ -58,6 +61,13 @@ export default function AjustesScreen() {
         <Text style={styles.label}>{texts.settings.account}</Text>
         <Text style={styles.help}>{texts.settings.loggedInAs(user?.username ?? '')}</Text>
         <PrimaryButton label={texts.settings.logout} icon="log-out-outline" variant="outline" onPress={logout} />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>{texts.settings.about}</Text>
+        <Text style={styles.help}>{texts.settings.discogsData}</Text>
+        {/* Aviso que exigen los términos de uso de la API de Discogs, con el texto exacto en inglés. */}
+        <Text style={styles.help}>{DISCOGS_NOTICE}</Text>
       </View>
     </ScrollView>
   );

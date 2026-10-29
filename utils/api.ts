@@ -13,10 +13,46 @@ const TIMEOUT_MS = 10000;
 const host = Constants.expoConfig?.hostUri?.split(':')[0];
 export const API_URL = host ? `http://${host}:${PUERTO}` : null;
 
-// GET al backend. Tira error si no hay backend, si tarda o si responde con un status de error.
-export async function apiGet<T>(path: string): Promise<T> {
+// El backend respondió con un status de error. Con el status, la pantalla distingue
+// "datos incorrectos" (400, 401, 409) de "no hay conexión" (cualquier otro error).
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
+}
+
+async function pedir<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_URL) throw new Error('No se conoce la dirección del backend');
-  const response = await conTimeout(fetch(`${API_URL}${path}`), TIMEOUT_MS);
-  if (!response.ok) throw new Error(`El backend respondió ${response.status}`);
+  const response = await conTimeout(fetch(`${API_URL}${path}`, init), TIMEOUT_MS);
+  if (!response.ok) throw new ApiError(`El backend respondió ${response.status}`, response.status);
+  // 204 (DELETE) no trae body.
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+// GET al backend. Tira error si no hay backend, si tarda o si responde con un status de error.
+export function apiGet<T>(path: string): Promise<T> {
+  return pedir<T>(path);
+}
+
+function conBody(method: 'POST' | 'PUT', body: unknown): RequestInit {
+  return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+}
+
+// POST con body JSON. Mismos errores que apiGet.
+export function apiPost<T>(path: string, body: unknown): Promise<T> {
+  return pedir<T>(path, conBody('POST', body));
+}
+
+// PUT con body JSON (crear o reemplazar). Mismos errores que apiGet.
+export function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return pedir<T>(path, conBody('PUT', body));
+}
+
+// DELETE. Mismos errores que apiGet.
+export function apiDelete(path: string): Promise<void> {
+  return pedir<void>(path, { method: 'DELETE' });
 }

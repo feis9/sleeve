@@ -1,0 +1,73 @@
+// Base del backend: SQLite con Prisma, como en la Práctica Prisma.
+// Para crearla: npm run db:init (prisma generate + prisma db push).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Copia de una edición de Discogs ya consultada, para no gastar el límite de pedidos.
+// Es un caché, no la fuente de los datos: los términos de Discogs no permiten mostrar datos con
+// más de 6 horas, así que pasado ese tiempo se vuelve a pedir.
+model Edicion {
+  // Número de release de Discogs.
+  id           Int      @id
+  // La edición con la forma que usa la app (la que arma getRelease), en JSON.
+  datos        String
+  consultadaEn DateTime
+}
+
+// Cuenta de Sleeve. La contraseña va en texto plano y se compara de forma directa: es una decisión
+// de alcance del Sprint 2, documentada como limitación (en producción iría con hash y token de sesión).
+model Usuario {
+  // Texto y no número: las cuentas de prueba conservan los ids de la app ("u-luca"), que son las
+  // claves de sus colecciones. Las cuentas nuevas reciben un id generado.
+  id          String   @id @default(cuid())
+  // Usuario y email se guardan en minúsculas, así "LucaF" y "lucaf" son la misma cuenta.
+  username    String   @unique
+  email       String   @unique
+  name        String
+  password    String
+  avatarColor String
+  createdAt   DateTime @default(now())
+  resenas     Resena[]
+  coleccion   ColeccionItem[]
+}
+
+// Un disco en la colección de un usuario. Si el GPS respondió al agregarlo, también dónde lo encontró.
+model ColeccionItem {
+  usuarioId  String
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  // Número de release de Discogs como texto, igual que el id de los discos en la app.
+  releaseId  String
+  agregadoEn DateTime  @default(now())
+  // Hallazgo (tipo Find de la app). Van juntos o vacíos: el disco se agrega aunque el GPS falle.
+  latitude   Float?
+  longitude  Float?
+  // "San Telmo, Buenos Aires". Puede quedar vacío aunque haya coordenadas.
+  place      String?
+  foundAt    DateTime?
+
+  // Un mismo disco una sola vez por usuario.
+  @@id([usuarioId, releaseId])
+}
+
+// Reseña de una edición. Una por usuario y edición: escribir otra reemplaza la anterior, como en la app.
+model Resena {
+  id        String   @id @default(cuid())
+  usuarioId String
+  // Si se borra el usuario, se borran sus reseñas.
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  // Número de release de Discogs como texto, igual que el id de los discos en la app.
+  releaseId String
+  rating    Int
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([usuarioId, releaseId])
+}

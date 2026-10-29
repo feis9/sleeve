@@ -29,7 +29,6 @@ export type User = {
   username: string;
   name: string;
   avatarColor: string;
-  collection: string[];
 };
 
 export type Review = {
@@ -38,7 +37,10 @@ export type Review = {
   releaseId: string;
   rating: number;
   body: string;
+  // Fecha de la última edición, "2026-10-28".
   createdAt: string;
+  // Autor según el backend: sirve cuando no está en data/mock.ts (una cuenta creada con el registro).
+  author?: User;
 };
 // Dónde y cuándo agregaste un disco a tu colección (GPS del teléfono).
 export type Find = {
@@ -48,10 +50,4 @@ export type Find = {
   place: string | null;
   // ISO 8601
   date: string;
-};
-
-export type Credential = {
-  userId: string;
-  email: string;
-  password: string;
 };

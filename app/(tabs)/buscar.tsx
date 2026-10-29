@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,7 +8,7 @@ import { Chip } from '@/components/chip';
 import { PrimaryButton } from '@/components/primary-button';
 import { ReleaseRow } from '@/components/release-row';
 import { fontSize, radius, spacing, type Palette } from '@/constants/theme';
-import { useReleases } from '@/context/releases';
+import { useReleases, type BarcodeSearch } from '@/context/releases';
 import { useTexts, useTheme } from '@/context/settings';
 import type { Release } from '@/types';
 import { barcodeDigits, validateBarcode } from '@/utils/validation';
@@ -34,7 +34,7 @@ export default function BuscarScreen() {
   const texts = useTexts();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { releases, releasesByBarcode } = useReleases();
+  const { releases, searchBarcode } = useReleases();
   const [query, setQuery] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todo');
   // En modo código el error se muestra al enviar o cuando ya se tipearon 12 dígitos, no mientras se escribe.
@@ -45,8 +45,25 @@ export default function BuscarScreen() {
   const errorCodigo = modoCodigo && q ? validateBarcode(query, texts.validation) : null;
   const mostrarErrorCodigo = errorCodigo !== null && (codigoEnviado || barcodeDigits(query).length >= 12);
 
+  // Con un código válido se consulta Discogs a través del backend. Se guarda junto con el código buscado
+  // para no mostrar la respuesta de un código anterior.
+  const codigoValido = modoCodigo && q && !errorCodigo ? barcodeDigits(query) : null;
+  const [porCodigo, setPorCodigo] = useState<(BarcodeSearch & { codigo: string }) | null>(null);
+  useEffect(() => {
+    if (!codigoValido) return;
+    let cancelado = false;
+    searchBarcode(codigoValido).then((r) => {
+      if (!cancelado) setPorCodigo({ ...r, codigo: codigoValido });
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [codigoValido, searchBarcode]);
+  const respuesta = porCodigo?.codigo === codigoValido ? porCodigo : null;
+  const buscandoCodigo = codigoValido !== null && respuesta === null;
+
   let resultados: Release[] = [];
-  if (modoCodigo) resultados = q && !errorCodigo ? releasesByBarcode(barcodeDigits(query)) : [];
+  if (modoCodigo) resultados = respuesta?.releases ?? [];
   else if (q) resultados = releases.filter((r) => coincide(r, q, filtro));
 
   function cambiarFiltro(f: Filtro) {
@@ -98,6 +115,7 @@ export default function BuscarScreen() {
         </View>
 
         {mostrarErrorCodigo && <Text style={styles.error}>{errorCodigo}</Text>}
+        {respuesta?.sinConexion && <Text style={styles.notice}>{texts.catalog.discogsOffline}</Text>}
       </View>
 
       <FlatList
@@ -111,7 +129,11 @@ export default function BuscarScreen() {
             // undefined y no null: desde RN 0.88 ListEmptyComponent no acepta null.
             mostrarErrorCodigo || (modoCodigo && errorCodigo) ? undefined : (
               <Text style={styles.emptyText}>
-                {modoCodigo ? texts.search.noCodeResults : texts.search.noResults(query)}
+                {buscandoCodigo
+                  ? texts.catalog.searching
+                  : modoCodigo
+                    ? texts.search.noCodeResults
+                    : texts.search.noResults(query)}
               </Text>
             )
           ) : (
@@ -163,6 +185,10 @@ const createStyles = (colors: Palette) =>
     },
     error: {
       color: colors.primary,
+      fontSize: fontSize.sm,
+    },
+    notice: {
+      color: colors.muted,
       fontSize: fontSize.sm,
     },
     input: {
