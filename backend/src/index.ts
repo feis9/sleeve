@@ -9,7 +9,7 @@ import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
 import { edicionConCache } from "./ediciones";
 import { prisma } from "./prisma";
-import { nuevaSesion } from "./sesiones";
+import { nuevaSesion, requiereSesion } from "./sesiones";
 import {
   PERFIL_PUBLICO,
   USUARIO_PUBLICO,
@@ -116,6 +116,35 @@ app.post("/api/registro", async (req, res) => {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return res.status(409).json({ error: "Ese usuario o email ya está registrado" });
     }
+    console.error(e);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+});
+
+// GET /api/yo  (con token)
+// El usuario dueño del token. La app lo usa para saber si la sesión que tiene guardada sigue sirviendo.
+app.get("/api/yo", requiereSesion, async (_req, res) => {
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { id: res.locals.usuarioId }, select: USUARIO_PUBLICO });
+    // No debería pasar: si se borra el usuario, sus sesiones se borran en cascada.
+    if (!usuario) return res.status(404).json({ error: "El usuario no existe" });
+    res.json(usuario);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+});
+
+// DELETE /api/sesion  (con token)
+// Cerrar sesión: borra la sesión de este token. Las de otros teléfonos del mismo usuario siguen andando.
+// Después de esto el token ya no sirve, aunque alguien lo haya copiado: es lo que un JWT no permite sin más.
+app.delete("/api/sesion", requiereSesion, async (_req, res) => {
+  try {
+    await prisma.sesion.delete({ where: { tokenHash: res.locals.tokenHash } });
+    res.status(204).end();
+  } catch (e) {
+    // P2025: otro pedido con el mismo token la borró entre el middleware y acá. El resultado es el mismo.
+    if (errorPrisma(e, "P2025")) return res.status(204).end();
     console.error(e);
     res.status(500).json({ error: "Error del servidor" });
   }

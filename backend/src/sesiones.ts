@@ -3,6 +3,10 @@
 
 import { createHash, randomBytes } from "node:crypto";
 
+import type { NextFunction, Request, Response } from "express";
+
+import { prisma } from "./prisma";
+
 // 30 días: la app no vuelve a pedir login cada vez que se abre, pero un token robado no sirve para siempre.
 export const VIGENCIA_SESION_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -22,4 +26,45 @@ export function nuevaSesion() {
     token,
     fila: { tokenHash: hashDelToken(token), expiraEn: new Date(Date.now() + VIGENCIA_SESION_MS) },
   };
+}
+
+// Lo que el middleware deja en res.locals para la ruta que sigue. Se declara acá para que TypeScript
+// sepa que res.locals.usuarioId existe y es texto (si no, sería any).
+declare global {
+  namespace Express {
+    interface Locals {
+      usuarioId: string;
+      tokenHash: string;
+    }
+  }
+}
+
+// 401 con el header que pide el estándar HTTP: le dice al cliente que se autentica con un token Bearer.
+function noAutorizado(res: Response, error: string) {
+  res.set("WWW-Authenticate", "Bearer").status(401).json({ error });
+}
+
+// Middleware de Express: corre antes de la ruta y decide si la deja pasar.
+// La app manda el header "Authorization: Bearer <token>". Si el token corresponde a una sesión vigente,
+// guarda el usuario en res.locals y llama a next(). Si no, corta con 401 y la ruta nunca se ejecuta.
+// Así el usuario sale del token y no de la URL: nadie puede actuar en nombre de otro cambiando un id.
+export async function requiereSesion(req: Request, res: Response, next: NextFunction) {
+  const [tipo, token] = (req.get("Authorization") ?? "").split(" ");
+  if (tipo !== "Bearer" || !token) return noAutorizado(res, "Falta el token de sesión");
+  try {
+    const tokenHash = hashDelToken(token);
+    const sesion = await prisma.sesion.findUnique({ where: { tokenHash } });
+    if (!sesion) return noAutorizado(res, "La sesión no es válida");
+    if (sesion.expiraEn.getTime() <= Date.now()) {
+      // Ya no sirve: se borra para que la tabla no junte sesiones muertas.
+      await prisma.sesion.delete({ where: { tokenHash } });
+      return noAutorizado(res, "La sesión venció. Volvé a entrar");
+    }
+    res.locals.usuarioId = sesion.usuarioId;
+    res.locals.tokenHash = tokenHash;
+    next();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error del servidor" });
+  }
 }
