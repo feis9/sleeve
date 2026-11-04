@@ -55,7 +55,7 @@ App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de 
 | GET | `/api/discogs/barcode/:code` | Ediciones en vinilo con ese código de barras |
 | GET | `/api/discogs/releases/:id` | Una edición de Discogs, con su tapa |
 | POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 o 401 |
-| POST | `/api/registro` | `{ username, email, name, password }`. 201, 400 o 409 |
+| POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201, 400 o 409 |
 | GET | `/api/resenas` | Reseñas con su autor. Filtros opcionales `?releaseId=` y `?usuarioId=` |
 | PUT | `/api/usuarios/:usuarioId/resenas/:releaseId` | `{ rating, body }`: crea o reemplaza la reseña de ese usuario para esa edición |
 | GET | `/api/usuarios/:id` | Perfil público (sin email ni contraseña) |
@@ -80,6 +80,8 @@ npm run dev
 ```
 
 Para comprobarlo: `curl localhost:3000/api/health` tiene que responder `{"ok":true}`.
+
+Si `dev.db` es de una versión anterior y el login de las cuentas de prueba da 401 (por ejemplo, porque las contraseñas pasaron a guardarse con hash), borrar `backend/prisma/dev.db` y volver a correr `npm run db:init`.
 
 **2. App**, desde la raíz del repo (no desde `backend/`):
 
@@ -129,7 +131,7 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, coleccion
 
 ## Limitaciones conocidas
 
-- **Contraseñas en texto plano.** El login compara la contraseña de forma directa y no hay token de sesión: es una decisión de alcance del Sprint 2. En producción iría con hash (bcrypt o argon2), token de sesión y HTTPS.
+- **Sin token de sesión.** Las contraseñas se guardan con hash (scrypt, con una sal al azar por cuenta), pero todavía no hay token de sesión. En producción además iría HTTPS.
 - **Backend local.** La app solo funciona con el backend corriendo en una computadora de la misma red Wi-Fi.
 - **Sin control de acceso en las rutas.** No hay token de sesión, así que el backend no verifica que quien escribe una reseña sea ese usuario.
 - **Sin conexión, solo lectura.** Sin backend se ven la colección, las reseñas y el ranking guardados en el teléfono, pero no se pueden agregar discos ni escribir reseñas.

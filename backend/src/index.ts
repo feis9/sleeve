@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import cors from "cors";
 import express from "express";
 
+import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
 import { edicionConCache } from "./ediciones";
 import { prisma } from "./prisma";
@@ -68,18 +69,21 @@ app.get("/api/discogs/releases/:id", async (req, res) => {
 });
 
 // POST /api/login  { identifier, password }
-// identifier es el usuario o el email, como en la app. Contraseña en texto plano: decisión de alcance.
+// identifier es el usuario o el email, como en la app. La contraseña se compara contra su hash (src/contrasenas.ts).
 app.post("/api/login", async (req, res) => {
   const datos = validarLogin(req.body);
   if ("error" in datos) return res.status(400).json({ error: datos.error });
   try {
     const where = datos.identifier.includes("@") ? { email: datos.identifier } : { username: datos.identifier };
-    const usuario = await prisma.usuario.findUnique({ where, select: { ...USUARIO_PUBLICO, password: true } });
+    const usuario = await prisma.usuario.findUnique({ where, select: { ...USUARIO_PUBLICO, passwordHash: true } });
+    // Si el usuario no existe se verifica igual, contra un hash de relleno: así la respuesta tarda lo mismo
+    // y midiendo el tiempo no se sabe qué cuentas existen.
+    const coincide = await verificar(datos.password, usuario?.passwordHash ?? (await HASH_DE_RELLENO));
     // Mismo mensaje si no existe o si la contraseña no coincide: no se revela qué cuentas existen.
-    if (!usuario || usuario.password !== datos.password) {
+    if (!usuario || !coincide) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
-    const { password: _password, ...publico } = usuario;
+    const { passwordHash: _hash, ...publico } = usuario;
     res.json(publico);
   } catch (e) {
     console.error(e);
@@ -92,7 +96,12 @@ app.post("/api/registro", async (req, res) => {
   const datos = validarRegistro(req.body);
   if ("error" in datos) return res.status(400).json({ error: datos.error });
   try {
-    const usuario = await prisma.usuario.create({ data: datos, select: USUARIO_PUBLICO });
+    // Se guarda el hash, nunca la contraseña que llegó en el body.
+    const { password, ...resto } = datos;
+    const usuario = await prisma.usuario.create({
+      data: { ...resto, passwordHash: await hashear(password) },
+      select: USUARIO_PUBLICO,
+    });
     res.status(201).json(usuario);
   } catch (e) {
     // P2002: violación de @unique. El usuario o el email ya están en uso.
