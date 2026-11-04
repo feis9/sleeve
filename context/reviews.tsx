@@ -86,7 +86,8 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
       if (!user) return false;
       try {
         const guardada = toReview(
-          await apiPut<BackendReview>(`/api/usuarios/${encodeURIComponent(user.id)}/resenas/${releaseId}`, { rating, body }),
+          // Sin id de usuario en la URL: el backend la guarda a nombre del dueño del token.
+          await apiPut<BackendReview>(`/api/yo/resenas/${releaseId}`, { rating, body }),
         );
         setReviews((prev) => [guardada, ...prev.filter((r) => r.id !== guardada.id)]);
         return true;
