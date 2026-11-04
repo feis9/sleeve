@@ -41,14 +41,29 @@ function conCodigo(releases: Iterable<Release>, barcode: string) {
   return [...releases].filter((r) => r.barcode !== null && normalizeBarcode(r.barcode) === codigo);
 }
 
-// Pide varias ediciones en paralelo. allSettled: si falla una, las demás llegan igual.
+// Máximo de ediciones por pedido que acepta el backend (MAX_IDS en backend/src/index.ts).
+const MAX_IDS = 50;
+
+// Pide varias ediciones en un solo pedido al backend (GET /api/ediciones?ids=…), en tandas de 50.
+// Antes era un pedido por edición: abrir la app eran 10 idas y vueltas aunque todo estuviera en la base del backend.
+// El backend omite las que no pudo traer, así que las fallidas son las pedidas que no volvieron.
 async function pedirEdiciones(ids: string[]) {
-  const resultados = await Promise.allSettled(ids.map((id) => apiGet<Release>(`/api/discogs/releases/${id}`)));
+  const tandas: string[][] = [];
+  for (let i = 0; i < ids.length; i += MAX_IDS) tandas.push(ids.slice(i, i + MAX_IDS));
+  // allSettled: si falla una tanda, las demás llegan igual.
+  const resultados = await Promise.allSettled(
+    tandas.map((tanda) => apiGet<Release[]>(`/api/ediciones?ids=${tanda.join(',')}`)),
+  );
   const traidas: Release[] = [];
   const fallidas: { id: string; motivo: unknown }[] = [];
   resultados.forEach((r, i) => {
-    if (r.status === 'fulfilled') traidas.push(r.value);
-    else fallidas.push({ id: ids[i], motivo: r.reason });
+    if (r.status === 'fulfilled') {
+      traidas.push(...r.value);
+      const llegaron = new Set(r.value.map((e) => e.id));
+      tandas[i].filter((id) => !llegaron.has(id)).forEach((id) => fallidas.push({ id, motivo: 'el backend no la devolvió' }));
+    } else {
+      tandas[i].forEach((id) => fallidas.push({ id, motivo: r.reason }));
+    }
   });
   return { traidas, fallidas };
 }
@@ -129,25 +144,17 @@ export function ReleasesProvider({ children }: { children: ReactNode }) {
 
   const searchBarcode = useCallback(async (barcode: string): Promise<BarcodeSearch> => {
     const codigo = normalizeBarcode(barcode);
-    let ids: string[];
+    let encontradas: Release[];
     try {
-      const encontradas = await apiGet<{ id: number }[]>(`/api/discogs/barcode/${codigo}`);
-      ids = encontradas.map((e) => String(e.id));
+      // Un solo pedido: el backend busca el código (o usa la búsqueda guardada) y devuelve las ediciones
+      // completas, con tapa, país y sello. Antes eran dos: la búsqueda y después el detalle de cada edición nueva.
+      encontradas = await apiGet<Release[]>(`/api/ediciones?codigo=${codigo}`);
     } catch {
       // Sin backend o sin Discogs: se busca entre los discos guardados en el teléfono.
       return { releases: conCodigo(conocidos.current.filter((r) => vigente(r)), codigo), sinConexion: true };
     }
-    // La búsqueda trae un resumen de cada edición. Para mostrar tapa, país y sello como en el resto
-    // de la app se pide el detalle de las que todavía no están en el catálogo.
-    const porId = new Map(conocidos.current.map((r) => [r.id, r]));
-    const { traidas, fallidas } = await pedirEdiciones(ids.filter((id) => !porId.has(id)));
-    avisarFallidas(fallidas);
-    if (traidas.length > 0) setReleases((actuales) => unir(actuales, traidas));
-    traidas.forEach((r) => porId.set(r.id, r));
-    return {
-      releases: ids.map((id) => porId.get(id)).filter((r): r is Release => r !== undefined),
-      sinConexion: false,
-    };
+    if (encontradas.length > 0) setReleases((actuales) => unir(actuales, encontradas));
+    return { releases: encontradas, sinConexion: false };
   }, []);
 
   const ensureReleases = useCallback(async (ids: string[]) => {
