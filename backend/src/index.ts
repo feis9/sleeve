@@ -28,6 +28,15 @@ const port = Number(process.env.PORT ?? 3000);
 app.use(cors());
 app.use(express.json());
 
+// Cuenta y anota cada pedido de la app a las rutas de Discogs. Junto con el contador "Discogs #N" de discogs.ts
+// muestra cuántos pedidos de la app terminan en un pedido a Discogs y cuántos los resuelve la base.
+let pedidosDeLaApp = 0;
+app.use("/api/discogs", (req, _res, next) => {
+  pedidosDeLaApp++;
+  console.log(`App #${pedidosDeLaApp} ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Prueba mínima: si responde, Express está vivo. Es lo primero que se prueba cuando algo no anda.
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
