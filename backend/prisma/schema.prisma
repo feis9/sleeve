@@ -10,15 +10,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Copia de una edición de Discogs ya consultada, para no gastar el límite de pedidos.
-// Es un caché, no la fuente de los datos: los términos de Discogs no permiten mostrar datos con
-// más de 6 horas, así que pasado ese tiempo se vuelve a pedir.
+// Réplica de las ediciones de Discogs ya consultadas, para no gastar el límite de pedidos ni volver a pedir
+// lo mismo. Es una réplica con vencimiento, no la fuente de los datos: los términos de Discogs no permiten
+// mostrar datos con más de 6 horas, así que pasado ese tiempo se vuelve a pedir (src/ediciones.ts).
+// Va en columnas y tablas, y no como un JSON, para que la base sepa qué guarda: se puede consultar y filtrar
+// con SQL (por ejemplo, buscar por código de barras) y cada campo tiene su tipo.
+//
+// A propósito, ColeccionItem y Resena NO tienen una relación con Edicion: guardan el número de release como
+// texto. Si la tuvieran, borrar una edición vencida de la réplica borraría (o bloquearía) colecciones y reseñas.
 model Edicion {
   // Número de release de Discogs.
-  id           Int      @id
-  // La edición con la forma que usa la app (la que arma getRelease), en JSON.
-  datos        String
-  consultadaEn DateTime
+  id            Int      @id
+  title         String
+  // Artistas unidos como figuran en la tapa ("Art Blakey And The Jazz Messengers*").
+  artist        String
+  // Los campos que Discogs puede no tener son opcionales: la app muestra la edición igual.
+  year          Int?
+  country       String?
+  label         String?
+  format        String?
+  genre         String?
+  barcode       String?
+  discogsRating Float?
+  coverUrl      String?
+  // Cuándo se le pidió a Discogs. De acá sale la vigencia de 6 horas.
+  consultadaEn  DateTime
+  temas         Tema[]
+  plantas       Planta[]
+}
+
+// Un tema del tracklist. Una edición tiene muchos (relación 1 a N).
+model Tema {
+  edicionId Int
+  // Al borrar la edición se borran sus temas.
+  edicion   Edicion @relation(fields: [edicionId], references: [id], onDelete: Cascade)
+  // Posición en la lista (0, 1, 2…). No alcanza con "position" ("A1", "B2"): puede repetirse o venir vacía.
+  orden     Int
+  position  String
+  title     String
+  // Discogs no siempre tiene la duración.
+  duration  String?
+
+  @@id([edicionId, orden])
+}
+
+// Una planta de prensado ("Pressed By" en Discogs). Una edición puede tener varias o ninguna.
+model Planta {
+  edicionId Int
+  edicion   Edicion @relation(fields: [edicionId], references: [id], onDelete: Cascade)
+  orden     Int
+  nombre    String
+
+  @@id([edicionId, orden])
 }
 
 // Cuenta de Sleeve. La contraseña nunca se guarda: se guarda su hash con scrypt (src/contrasenas.ts).
