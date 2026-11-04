@@ -89,6 +89,8 @@ Para comprobarlo: `curl localhost:3000/api/health` tiene que responder `{"ok":tr
 
 Si `dev.db` es de una versión anterior y el login de las cuentas de prueba da 401 (por ejemplo, porque las contraseñas pasaron a guardarse con hash), borrar `backend/prisma/dev.db` y volver a correr `npm run db:init`.
 
+`npm audit` en `backend/` da 0 vulnerabilidades. `backend/package.json` fuerza `deepmerge-ts` 8 con `overrides`: Prisma 6 trae la 7, que tiene la falla CVE-2026-40345. Esa dependencia solo la usa la CLI de Prisma para leer `prisma.config.ts`, que el backend no tiene, y la versión 8 se probó con `prisma validate`, `generate` y `db push`. La alternativa que propone `npm audit fix --force` es pasar a Prisma 7, una versión mayor que cambia la configuración.
+
 **2. App**, desde la raíz del repo (no desde `backend/`):
 
 ```bash
