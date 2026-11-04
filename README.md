@@ -61,12 +61,12 @@ Las rutas marcadas "con token" piden el header `Authorization: Bearer <token>`, 
 | GET | `/api/yo` | Con token: el usuario dueño de la sesión. 401 sin token, con uno inválido o vencido |
 | DELETE | `/api/sesion` | Con token: cierra esa sesión (204). Después el token ya no sirve |
 | GET | `/api/resenas` | Reseñas con su autor. Filtros opcionales `?releaseId=` y `?usuarioId=` |
-| PUT | `/api/usuarios/:usuarioId/resenas/:releaseId` | `{ rating, body }`: crea o reemplaza la reseña de ese usuario para esa edición |
+| PUT | `/api/yo/resenas/:releaseId` | Con token. `{ rating, body }`: crea o reemplaza tu reseña para esa edición |
 | GET | `/api/usuarios/:id` | Perfil público (sin email ni contraseña) |
 | GET | `/api/usuarios/:id/coleccion` | Discos de la colección, con dónde se encontró cada uno |
-| PUT | `/api/usuarios/:id/coleccion/:releaseId` | Agrega el disco a la colección |
-| PUT | `/api/usuarios/:id/coleccion/:releaseId/hallazgo` | `{ latitude, longitude, place, date }`: dónde se encontró |
-| DELETE | `/api/usuarios/:id/coleccion/:releaseId` | Saca el disco de la colección (204) |
+| PUT | `/api/yo/coleccion/:releaseId` | Con token. Agrega el disco a tu colección |
+| PUT | `/api/yo/coleccion/:releaseId/hallazgo` | Con token. `{ latitude, longitude, place, date }`: dónde lo encontraste |
+| DELETE | `/api/yo/coleccion/:releaseId` | Con token. Saca el disco de tu colección (204) |
 | GET | `/api/ranking` | Usuarios ordenados por cantidad de discos |
 
 ## Cómo correrla
@@ -135,9 +135,9 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, coleccion
 
 ## Limitaciones conocidas
 
-- **Sin token de sesión.** Las contraseñas se guardan con hash (scrypt, con una sal al azar por cuenta), pero todavía no hay token de sesión. En producción además iría HTTPS.
+- **Sin HTTPS.** Las contraseñas se guardan con hash (scrypt, con una sal al azar por cuenta) y las rutas que escriben piden un token de sesión, pero la contraseña y el token viajan sin cifrar por la red local. En producción iría HTTPS.
+- **Token sin cifrar en el teléfono.** La app guarda el token en AsyncStorage. En producción iría en el almacenamiento seguro del sistema (Keychain en iOS, Keystore en Android).
 - **Backend local.** La app solo funciona con el backend corriendo en una computadora de la misma red Wi-Fi.
-- **Sin control de acceso en las rutas.** No hay token de sesión, así que el backend no verifica que quien escribe una reseña sea ese usuario.
 - **Sin conexión, solo lectura.** Sin backend se ven la colección, las reseñas y el ranking guardados en el teléfono, pero no se pueden agregar discos ni escribir reseñas.
 
 ## Discogs

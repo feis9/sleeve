@@ -48,7 +48,9 @@ function noAutorizado(res: Response, error: string) {
 // La app manda el header "Authorization: Bearer <token>". Si el token corresponde a una sesión vigente,
 // guarda el usuario en res.locals y llama a next(). Si no, corta con 401 y la ruta nunca se ejecuta.
 // Así el usuario sale del token y no de la URL: nadie puede actuar en nombre de otro cambiando un id.
-export async function requiereSesion(req: Request, res: Response, next: NextFunction) {
+// Es genérico en P (los parámetros de la ruta) para que TypeScript siga sabiendo, en la ruta que viene después,
+// que req.params.releaseId es texto. Con un Request común, Express 5 lo tipa como string | string[].
+export async function requiereSesion<P>(req: Request<P>, res: Response, next: NextFunction) {
   const [tipo, token] = (req.get("Authorization") ?? "").split(" ");
   if (tipo !== "Bearer" || !token) return noAutorizado(res, "Falta el token de sesión");
   try {
