@@ -48,8 +48,10 @@ function desdeBackend(userId: string, items: BackendItem[]): Stored {
   return { userId, ids: items.map((i) => i.releaseId), finds };
 }
 
-const ruta = (userId: string, releaseId?: string) =>
-  `/api/usuarios/${encodeURIComponent(userId)}/coleccion${releaseId ? `/${releaseId}` : ''}`;
+// Leer una colección es público: la de cualquier usuario, por su id.
+const ruta = (userId: string) => `/api/usuarios/${encodeURIComponent(userId)}/coleccion`;
+// Cambiarla, solo la propia: el backend saca el usuario del token, por eso en la URL no va ningún id de usuario.
+const rutaMia = (releaseId: string) => `/api/yo/coleccion/${releaseId}`;
 
 export function CollectionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -150,7 +152,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       return conRespaldo(
         (prev) => (prev.ids.includes(id) ? prev : { ...prev, ids: [id, ...prev.ids] }),
         (prev) => sinDisco(prev, id),
-        () => apiPut(ruta(userId, id), {}),
+        () => apiPut(rutaMia(id), {}),
       );
     }
 
@@ -166,7 +168,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
           restaurados.splice(Math.max(indice, 0), 0, id);
           return { ...prev, ids: restaurados, finds: find ? { ...prev.finds, [id]: find } : prev.finds };
         },
-        () => apiDelete(ruta(userId, id)),
+        () => apiDelete(rutaMia(id)),
       );
     }
 
@@ -178,7 +180,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
           const { [id]: _borrado, ...resto } = prev.finds;
           return { ...prev, finds: resto };
         },
-        () => apiPut(`${ruta(userId, id)}/hallazgo`, find),
+        () => apiPut(`${rutaMia(id)}/hallazgo`, find),
       );
     }
 
