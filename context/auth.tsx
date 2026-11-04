@@ -23,6 +23,8 @@ type AuthContextValue = {
 
 // El usuario como lo devuelve el backend: nunca trae la contraseña.
 type BackendUser = { id: string; username: string; email: string; name: string; avatarColor: string };
+// Respuesta de login y registro: el usuario y el token de su sesión.
+type BackendSesion = { usuario: BackendUser; token: string };
 
 // Se guarda el usuario logueado (sin contraseña), no solo su id: las cuentas creadas con el registro
 // no están en data/mock.ts. v2 porque antes se guardaba solo el id.
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function login(identifier: string, password: string): Promise<LoginResult> {
       try {
-        iniciarSesion(await apiPost<BackendUser>('/api/login', { identifier, password }));
+        iniciarSesion((await apiPost<BackendSesion>('/api/login', { identifier, password })).usuario);
         return 'ok';
       } catch (e) {
         // 400 o 401: el backend respondió y los datos no sirven. Cualquier otra cosa: no hubo conexión
@@ -78,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function register(data: RegisterData): Promise<RegisterResult> {
       try {
-        iniciarSesion(await apiPost<BackendUser>('/api/registro', data));
+        iniciarSesion((await apiPost<BackendSesion>('/api/registro', data)).usuario);
         return 'ok';
       } catch (e) {
         if (e instanceof ApiError && e.status === 409) return 'taken';

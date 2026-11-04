@@ -9,6 +9,7 @@ import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
 import { edicionConCache } from "./ediciones";
 import { prisma } from "./prisma";
+import { nuevaSesion } from "./sesiones";
 import {
   PERFIL_PUBLICO,
   USUARIO_PUBLICO,
@@ -68,8 +69,9 @@ app.get("/api/discogs/releases/:id", async (req, res) => {
   }
 });
 
-// POST /api/login  { identifier, password }
+// POST /api/login  { identifier, password }  →  { usuario, token }
 // identifier es el usuario o el email, como en la app. La contraseña se compara contra su hash (src/contrasenas.ts).
+// Si coincide, se crea una sesión y la app recibe el token que va a mandar en cada pedido.
 app.post("/api/login", async (req, res) => {
   const datos = validarLogin(req.body);
   if ("error" in datos) return res.status(400).json({ error: datos.error });
@@ -84,25 +86,31 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
     const { passwordHash: _hash, ...publico } = usuario;
-    res.json(publico);
+    const { token, fila } = nuevaSesion();
+    await prisma.sesion.create({ data: { ...fila, usuarioId: publico.id } });
+    res.json({ usuario: publico, token });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Error del servidor" });
   }
 });
 
-// POST /api/registro  { username, email, name, password }
+// POST /api/registro  { username, email, name, password }  →  { usuario, token }
+// Al registrarse se queda logueado, así que también se crea la sesión.
 app.post("/api/registro", async (req, res) => {
   const datos = validarRegistro(req.body);
   if ("error" in datos) return res.status(400).json({ error: datos.error });
   try {
     // Se guarda el hash, nunca la contraseña que llegó en el body.
     const { password, ...resto } = datos;
+    const { token, fila } = nuevaSesion();
+    // La sesión se crea anidada en el usuario: Prisma hace las dos inserciones en una transacción,
+    // así no puede quedar un usuario sin sesión ni una sesión sin usuario.
     const usuario = await prisma.usuario.create({
-      data: { ...resto, passwordHash: await hashear(password) },
+      data: { ...resto, passwordHash: await hashear(password), sesiones: { create: fila } },
       select: USUARIO_PUBLICO,
     });
-    res.status(201).json(usuario);
+    res.status(201).json({ usuario, token });
   } catch (e) {
     // P2002: violación de @unique. El usuario o el email ya están en uso.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

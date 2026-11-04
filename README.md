@@ -54,8 +54,8 @@ App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de 
 | GET | `/api/health` | Prueba de vida: `{"ok":true}` |
 | GET | `/api/discogs/barcode/:code` | Ediciones en vinilo con ese código de barras |
 | GET | `/api/discogs/releases/:id` | Una edición de Discogs, con su tapa |
-| POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 o 401 |
-| POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201, 400 o 409 |
+| POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 con `{ usuario, token }` o 401 |
+| POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201 con `{ usuario, token }`, 400 o 409 |
 | GET | `/api/resenas` | Reseñas con su autor. Filtros opcionales `?releaseId=` y `?usuarioId=` |
 | PUT | `/api/usuarios/:usuarioId/resenas/:releaseId` | `{ rating, body }`: crea o reemplaza la reseña de ese usuario para esa edición |
 | GET | `/api/usuarios/:id` | Perfil público (sin email ni contraseña) |

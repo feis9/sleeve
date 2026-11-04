@@ -36,6 +36,19 @@ model Usuario {
   createdAt   DateTime @default(now())
   resenas     Resena[]
   coleccion   ColeccionItem[]
+  sesiones    Sesion[]
+}
+
+// Una sesión iniciada: se crea en cada login o registro. Un usuario puede tener varias (un teléfono cada una).
+model Sesion {
+  // SHA-256 del token que tiene la app (src/sesiones.ts). El token mismo nunca se guarda.
+  tokenHash String   @id
+  usuarioId String
+  // Si se borra el usuario, se borran sus sesiones.
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  creadaEn  DateTime @default(now())
+  // Pasada esta fecha, el token deja de servir y hay que volver a entrar.
+  expiraEn  DateTime
 }
 
 // Un disco en la colección de un usuario. Si el GPS respondió al agregarlo, también dónde lo encontró.
