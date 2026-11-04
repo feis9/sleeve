@@ -2,6 +2,7 @@
 // ni pedir dos veces lo mismo.
 
 import { getRelease } from "./discogs";
+import { unaVez } from "./enCurso";
 import { prisma } from "./prisma";
 
 // La edición con la forma que usa la app (la que arma getRelease en discogs.ts).
@@ -99,8 +100,13 @@ export async function leerVigente(id: number): Promise<Edicion | null> {
 }
 
 // La edición desde la réplica si está vigente; si no, desde Discogs, y se guarda.
+// unaVez: si la misma edición ya se está pidiendo, se espera esa respuesta en lugar de pedirla de nuevo.
+export function edicionConCache(id: number): Promise<Edicion> {
+  return unaVez(`edicion:${id}`, () => buscarEdicion(id));
+}
+
 // La réplica es best-effort: si la base falla, se sigue directo contra Discogs.
-export async function edicionConCache(id: number): Promise<Edicion> {
+async function buscarEdicion(id: number): Promise<Edicion> {
   try {
     const vigente = await leerVigente(id);
     if (vigente) return vigente;
@@ -117,4 +123,16 @@ export async function edicionConCache(id: number): Promise<Edicion> {
     console.error(`No se pudo guardar la edición ${id} en la base:`, e);
   }
   return { ...edicion, consultadaEn: consultadaEn.toISOString() };
+}
+
+// Varias ediciones en un solo pedido, en el orden pedido y sin repetir. Cada una sale de la réplica si está vigente.
+// Si falla alguna (por ejemplo, no existe en Discogs), se devuelven las demás; si fallan todas, se tira el error
+// de la primera para que la ruta responda 502 (o 500 si falta el token).
+export async function edicionesPorIds(ids: number[]): Promise<Edicion[]> {
+  const unicos = [...new Set(ids)];
+  const resultados = await Promise.allSettled(unicos.map((id) => edicionConCache(id)));
+  const ediciones = resultados.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  const primerError = resultados.find((r) => r.status === "rejected");
+  if (ediciones.length === 0 && primerError) throw primerError.reason;
+  return ediciones;
 }

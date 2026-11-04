@@ -8,7 +8,7 @@ import express from "express";
 import { edicionesPorCodigo } from "./busquedas";
 import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
-import { edicionConCache } from "./ediciones";
+import { edicionConCache, edicionesPorIds } from "./ediciones";
 import { prisma } from "./prisma";
 import { nuevaSesion, requiereSesion } from "./sesiones";
 import {
@@ -79,18 +79,39 @@ app.get("/api/discogs/releases/:id", async (req, res) => {
   }
 });
 
-// GET /api/ediciones?codigo=…
-// Las ediciones en vinilo con ese código de barras, completas (tapa, país, tracklist), en una sola respuesta.
-// La búsqueda y cada edición salen de la réplica si se consultaron hace menos de 6 horas (src/busquedas.ts).
-// Sin resultados no es un error: devuelve [].
+// Máximo de ediciones por pedido con ?ids=. Discogs permite 60 pedidos por minuto: con la réplica vacía,
+// un solo pedido de la app no debería poder gastarlos todos.
+const MAX_IDS = 50;
+
+// GET /api/ediciones?codigo=…   o   GET /api/ediciones?ids=1517028,15527003,…
+// Ediciones completas (tapa, país, tracklist) en una sola respuesta, en lugar de un pedido por edición.
+// Con codigo: las ediciones en vinilo con ese código de barras (el escaneo). Sin resultados devuelve [].
+// Con ids: esas ediciones, en ese orden (el catálogo de la app). Las que no existen en Discogs se omiten.
+// La búsqueda y cada edición salen de la réplica si se consultaron hace menos de 6 horas.
 app.get("/api/ediciones", async (req, res) => {
-  // Mismo criterio que /api/discogs/barcode/:code: se aceptan espacios y guiones, y entre 8 y 13 dígitos.
-  const codigo = typeof req.query.codigo === "string" ? req.query.codigo.replace(/[\s-]/g, "") : "";
-  if (!/^\d{8,13}$/.test(codigo)) {
-    return res.status(400).json({ error: "El código tiene que tener entre 8 y 13 dígitos" });
+  const { codigo: codigoCrudo, ids: idsCrudos } = req.query;
+  if ((codigoCrudo === undefined) === (idsCrudos === undefined)) {
+    return res.status(400).json({ error: "Hay que pasar codigo o ids, uno de los dos" });
+  }
+  let pedir: () => Promise<unknown>;
+  if (codigoCrudo !== undefined) {
+    // Mismo criterio que /api/discogs/barcode/:code: se aceptan espacios y guiones, y entre 8 y 13 dígitos.
+    const codigo = typeof codigoCrudo === "string" ? codigoCrudo.replace(/[\s-]/g, "") : "";
+    if (!/^\d{8,13}$/.test(codigo)) {
+      return res.status(400).json({ error: "El código tiene que tener entre 8 y 13 dígitos" });
+    }
+    pedir = () => edicionesPorCodigo(codigo);
+  } else {
+    // "1517028,15527003": cada uno tiene que ser un número de release válido (entero positivo).
+    const ids = typeof idsCrudos === "string" ? idsCrudos.split(",").map(Number) : [];
+    if (ids.length === 0 || !ids.every((id) => Number.isInteger(id) && id > 0)) {
+      return res.status(400).json({ error: "ids tiene que ser una lista de números separados por comas" });
+    }
+    if (ids.length > MAX_IDS) return res.status(400).json({ error: `Se pueden pedir hasta ${MAX_IDS} ediciones por vez` });
+    pedir = () => edicionesPorIds(ids);
   }
   try {
-    res.json(await edicionesPorCodigo(codigo));
+    res.json(await pedir());
   } catch (e) {
     if (e instanceof ConfigError) return res.status(500).json({ error: e.message });
     res.status(502).json({ error: "No se pudo consultar Discogs" });

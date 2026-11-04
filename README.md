@@ -57,6 +57,7 @@ Las rutas marcadas "con token" piden el header `Authorization: Bearer <token>`, 
 | GET | `/api/discogs/barcode/:code` | Ediciones en vinilo con ese código de barras |
 | GET | `/api/discogs/releases/:id` | Una edición de Discogs, con su tapa |
 | GET | `/api/ediciones?codigo=` | Las ediciones en vinilo con ese código de barras, completas, en una sola respuesta. La búsqueda y cada edición salen de la réplica si tienen menos de 6 horas |
+| GET | `/api/ediciones?ids=` | Varias ediciones por número de release (`?ids=1517028,15527003`, hasta 50), en ese orden y en una sola respuesta. Las que no existen se omiten |
 | POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 con `{ usuario, token }` o 401 |
 | POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201 con `{ usuario, token }`, 400 o 409 |
 | GET | `/api/yo` | Con token: el usuario dueño de la sesión. 401 sin token, con uno inválido o vencido |

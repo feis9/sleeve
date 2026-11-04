@@ -1,14 +1,20 @@
 // Búsquedas por código de barras con réplica en la base. Discogs se consulta una vez por código cada 6 horas.
 
 import { normalizeBarcode, searchByBarcode } from "./discogs";
-import { VIGENCIA_MS, edicionConCache } from "./ediciones";
+import { VIGENCIA_MS, edicionesPorIds } from "./ediciones";
+import { unaVez } from "./enCurso";
 import { prisma } from "./prisma";
 
 // Los números de release de las ediciones en vinilo con ese código, en el orden de Discogs.
 // Si se buscó hace menos de 6 horas, salen de la base; si no, se le pregunta a Discogs y se guarda.
-async function idsPorCodigo(codigo: string): Promise<number[]> {
+// unaVez: dos escaneos simultáneos del mismo código generan una sola búsqueda en Discogs.
+function idsPorCodigo(codigo: string): Promise<number[]> {
   // La clave es el código normalizado: escanear con o sin el 0 adelante cae en la misma fila.
   const clave = normalizeBarcode(codigo);
+  return unaVez(`busqueda:${clave}`, () => buscarIds(codigo, clave));
+}
+
+async function buscarIds(codigo: string, clave: string): Promise<number[]> {
   try {
     const guardada = await prisma.busquedaCodigo.findUnique({
       where: { codigo: clave },
@@ -44,13 +50,7 @@ async function idsPorCodigo(codigo: string): Promise<number[]> {
 
 // Las ediciones completas (con tapa, país y tracklist) que tienen ese código, en una sola respuesta.
 // Antes la app hacía dos idas y vueltas: buscaba el código y después pedía el detalle de cada edición.
-// Cada detalle sale de la réplica si está vigente. Si falla el detalle de alguna, se devuelven las demás;
-// si fallan todas, se tira el error de la primera para que la ruta responda 502 (o 500 si falta el token).
+// Cada detalle sale de la réplica si está vigente (edicionesPorIds, con el mismo criterio ante fallas).
 export async function edicionesPorCodigo(codigo: string) {
-  const ids = await idsPorCodigo(codigo);
-  const resultados = await Promise.allSettled(ids.map((id) => edicionConCache(id)));
-  const ediciones = resultados.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
-  const primerError = resultados.find((r) => r.status === "rejected");
-  if (ediciones.length === 0 && primerError) throw primerError.reason;
-  return ediciones;
+  return edicionesPorIds(await idsPorCodigo(codigo));
 }
