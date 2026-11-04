@@ -24,9 +24,34 @@ export class ApiError extends Error {
   }
 }
 
+// Token de la sesión actual. Lo pone AuthProvider al entrar o al abrir la app y lo saca al cerrar sesión.
+// Vive acá, y no en el contexto, para que cualquier pedido lo mande sin que cada pantalla tenga que pasarlo.
+let token: string | null = null;
+// Lo que hay que hacer cuando el backend dice que la sesión ya no sirve (401). Lo registra AuthProvider.
+let alPerderSesion: (() => void) | null = null;
+
+export function setToken(nuevo: string | null) {
+  token = nuevo;
+}
+
+// Registra qué hacer ante un 401 con el token actual. Devuelve la función que lo desregistra (para el useEffect).
+export function onSesionPerdida(accion: () => void) {
+  alPerderSesion = accion;
+  return () => {
+    if (alPerderSesion === accion) alPerderSesion = null;
+  };
+}
+
 async function pedir<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_URL) throw new Error('No se conoce la dirección del backend');
-  const response = await conTimeout(fetch(`${API_URL}${path}`, init), TIMEOUT_MS);
+  // Se lee antes del primer await: es el token con el que sale este pedido, aunque la sesión cambie mientras espera.
+  const enviado = token;
+  // Con sesión, cada pedido lleva "Authorization: Bearer <token>". El backend saca de ahí quién llama.
+  const headers = { ...(init?.headers as Record<string, string> | undefined), ...(enviado && { Authorization: `Bearer ${enviado}` }) };
+  const response = await conTimeout(fetch(`${API_URL}${path}`, { ...init, headers }), TIMEOUT_MS);
+  // 401 con el token actual: la sesión venció o se cerró desde el backend. Se cierra también en la app.
+  // Si el token ya cambió (por ejemplo, se volvió a entrar mientras el pedido viajaba), el 401 es de una sesión vieja y no se toca nada.
+  if (response.status === 401 && enviado !== null && enviado === token) alPerderSesion?.();
   if (!response.ok) throw new ApiError(`El backend respondió ${response.status}`, response.status);
   // 204 (DELETE) no trae body.
   if (response.status === 204) return undefined as T;
