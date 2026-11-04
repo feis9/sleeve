@@ -10,6 +10,7 @@ import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
 import { edicionConCache, edicionesPorIds } from "./ediciones";
 import { prisma } from "./prisma";
+import { programarPurga } from "./purga";
 import { nuevaSesion, requiereSesion } from "./sesiones";
 import {
   PERFIL_PUBLICO,
@@ -388,4 +389,5 @@ app.get("/api/ranking", async (_req, res) => {
 // Sin host, Node escucha en todas las interfaces de la PC: el teléfono entra por la IP local.
 app.listen(port, () => {
   console.log(`API escuchando en el puerto ${port}`);
+  programarPurga();
 });

@@ -146,6 +146,8 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, coleccion
 
 Los datos y las tapas de los discos vienen de Discogs.
 
+El backend guarda una réplica de lo que ya consultó (ediciones con su tracklist y búsquedas por código) para no pedir dos veces lo mismo. Los términos de uso de Discogs no permiten mostrar datos con más de 6 horas, así que lo que pasa ese tiempo se vuelve a pedir y el backend lo borra cada 15 minutos.
+
 This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.
 
 ## Equipo
