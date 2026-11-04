@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import cors from "cors";
 import express from "express";
 
+import { edicionesPorCodigo } from "./busquedas";
 import { HASH_DE_RELLENO, hashear, verificar } from "./contrasenas";
 import { ConfigError, DiscogsError, searchByBarcode } from "./discogs";
 import { edicionConCache } from "./ediciones";
@@ -28,10 +29,10 @@ const port = Number(process.env.PORT ?? 3000);
 app.use(cors());
 app.use(express.json());
 
-// Cuenta y anota cada pedido de la app a las rutas de Discogs. Junto con el contador "Discogs #N" de discogs.ts
+// Cuenta y anota cada pedido de la app a las rutas de discos (/api/discogs y /api/ediciones). Junto con el contador "Discogs #N" de discogs.ts
 // muestra cuántos pedidos de la app terminan en un pedido a Discogs y cuántos los resuelve la base.
 let pedidosDeLaApp = 0;
-app.use("/api/discogs", (req, _res, next) => {
+app.use(["/api/discogs", "/api/ediciones"], (req, _res, next) => {
   pedidosDeLaApp++;
   console.log(`App #${pedidosDeLaApp} ${req.method} ${req.originalUrl}`);
   next();
@@ -74,6 +75,24 @@ app.get("/api/discogs/releases/:id", async (req, res) => {
   } catch (e) {
     if (e instanceof ConfigError) return res.status(500).json({ error: e.message });
     if (e instanceof DiscogsError && e.status === 404) return res.status(404).json({ error: "No existe en Discogs" });
+    res.status(502).json({ error: "No se pudo consultar Discogs" });
+  }
+});
+
+// GET /api/ediciones?codigo=…
+// Las ediciones en vinilo con ese código de barras, completas (tapa, país, tracklist), en una sola respuesta.
+// La búsqueda y cada edición salen de la réplica si se consultaron hace menos de 6 horas (src/busquedas.ts).
+// Sin resultados no es un error: devuelve [].
+app.get("/api/ediciones", async (req, res) => {
+  // Mismo criterio que /api/discogs/barcode/:code: se aceptan espacios y guiones, y entre 8 y 13 dígitos.
+  const codigo = typeof req.query.codigo === "string" ? req.query.codigo.replace(/[\s-]/g, "") : "";
+  if (!/^\d{8,13}$/.test(codigo)) {
+    return res.status(400).json({ error: "El código tiene que tener entre 8 y 13 dígitos" });
+  }
+  try {
+    res.json(await edicionesPorCodigo(codigo));
+  } catch (e) {
+    if (e instanceof ConfigError) return res.status(500).json({ error: e.message });
     res.status(502).json({ error: "No se pudo consultar Discogs" });
   }
 });

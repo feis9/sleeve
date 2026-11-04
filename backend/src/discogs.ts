@@ -34,7 +34,7 @@ type SearchResult = {
 };
 
 // Solo dígitos, y un EAN-13 con 0 adelante es el mismo UPC-A (igual que normalizeBarcode en la app).
-function normalizeBarcode(code: string) {
+export function normalizeBarcode(code: string) {
   const digits = code.replace(/\D/g, "");
   return digits.length === 13 && digits.startsWith("0") ? digits.slice(1) : digits;
 }
