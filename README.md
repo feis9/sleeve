@@ -2,7 +2,7 @@
 
 Red social para coleccionistas de vinilos: escaneás el código de barras de un disco, identificás la edición exacta, registrás dónde lo encontraste y compartís reseñas de ese prensado con otros coleccionistas.
 
-Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Sprint 1: front-end. Sprint 2: backend propio y conexión a Discogs.
+Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Sprint 1: front-end. Sprint 2: backend propio y conexión a Discogs. Después de la devolución del Sprint 2: contraseñas con hash, token de sesión y réplica de Discogs en la base.
 
 ## Mockup
 
@@ -10,15 +10,16 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 
 ## Funcionalidades
 
-- **Escaneo real del código de barras** con la cámara (EAN-13 y UPC-A). La app busca el código en Discogs y muestra todas las ediciones en vinilo que lo tienen, para elegir la propia. Sirve para cualquier vinilo cargado en Discogs.
+- **Escaneo real del código de barras** con la cámara (EAN-13, UPC-A, EAN-8 y UPC-E). La app busca el código en Discogs y muestra todas las ediciones en vinilo que lo tienen, para elegir la propia. Sirve para cualquier vinilo cargado en Discogs.
 - **Datos y tapas originales de Discogs**: título, artista, país, sello, formato, tracklist, puntaje de la comunidad y la tapa de cada edición.
 - **Registro del hallazgo con GPS**: al agregar un disco se guarda dónde y cuándo lo encontraste ("Encontrado en San Telmo, CABA").
 - **Mapa por edición**: el detalle de cada disco muestra el país de esa edición.
 - **Colección personal** guardada en el backend, con una copia en el teléfono para verla sin conexión.
 - **Reseñas por prensado**, de 1 a 5 estrellas, compartidas entre teléfonos. En el perfil, cada disco aparece con su reseña.
 - **Ranking** de coleccionistas y perfiles públicos.
-- **Login y registro** contra el backend, con email o usuario y contraseña. La sesión queda guardada en el dispositivo.
-- **Validaciones** en el login, el registro, la carga manual de códigos (incluye el dígito verificador) y las reseñas. El backend repite las del login y el registro.
+- **Login y registro** contra el backend, con email o usuario y contraseña. Las contraseñas se guardan con hash y cada sesión tiene su token, que la app manda en cada pedido. La sesión queda guardada en el dispositivo.
+- **Búsqueda** por artista, álbum o sello entre los discos que ya están en el teléfono, y por código de barras en Discogs.
+- **Validaciones** en el login, el registro, la carga manual de códigos (incluye el dígito verificador) y las reseñas. El backend vuelve a validar todo lo que recibe: login, registro, reseñas, hallazgos, códigos e ids.
 - **Idioma** castellano / inglés y **tema** claro / oscuro / según el sistema, desde Ajustes.
 
 ## Componentes nativos
@@ -39,12 +40,13 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 ```
 App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de Discogs
                               │
-                              └── SQLite (Prisma): usuarios, colecciones, hallazgos, reseñas
-                                                   y caché de ediciones
+                              └── SQLite (Prisma): usuarios, sesiones, colecciones, hallazgos, reseñas
+                                                   y réplica de Discogs (ediciones y búsquedas)
 ```
 
 - La app nunca le habla a Discogs: el token de Discogs vive solo en `backend/.env`, que no está en el repo.
-- El backend guarda cada edición consultada durante 6 horas (el máximo que permiten los términos de uso de Discogs), para no gastar el límite de 60 pedidos por minuto.
+- El backend guarda una réplica de lo que ya le pidió a Discogs (ediciones con su tracklist y búsquedas por código) durante 6 horas, el máximo que permiten los términos de uso de Discogs. Así no pide dos veces lo mismo ni gasta el límite de 60 pedidos por minuto. La app pide el catálogo y cada escaneo en un solo pedido.
+- Las rutas que escriben (reseñas y colección) están en `/api/yo/...` y toman el usuario del token de sesión, nunca de la URL.
 - La app encuentra sola al backend: usa la IP de la PC donde corre Expo y el puerto 3000.
 
 ### Endpoints
@@ -143,6 +145,7 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, coleccion
 - **Token sin cifrar en el teléfono.** La app guarda el token en AsyncStorage. En producción iría en el almacenamiento seguro del sistema (Keychain en iOS, Keystore en Android).
 - **Backend local.** La app solo funciona con el backend corriendo en una computadora de la misma red Wi-Fi.
 - **Sin conexión, solo lectura.** Sin backend se ven la colección, las reseñas y el ranking guardados en el teléfono, pero no se pueden agregar discos ni escribir reseñas.
+- **Búsqueda por texto solo en el teléfono.** Por artista, álbum o sello se busca entre los discos ya cargados, no en Discogs. Para identificar un disco se usa el código de barras, que da la edición exacta.
 
 ## Discogs
 
