@@ -2,7 +2,7 @@
 
 Red social para coleccionistas de vinilos: escaneás el código de barras de un disco, identificás la edición exacta, registrás dónde lo encontraste y compartís reseñas de ese prensado con otros coleccionistas.
 
-Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Sprint 1: front-end. Sprint 2: backend propio y conexión a Discogs.
+Proyecto de la materia **Programación de Aplicaciones Móviles** (GCO0423), Facultad de Ingeniería y Ciencias Agrarias, UCA. Sprint 1: front-end. Sprint 2: backend propio y conexión a Discogs. Después de la devolución del Sprint 2: contraseñas con hash, token de sesión y réplica de Discogs en la base.
 
 ## Mockup
 
@@ -10,15 +10,16 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 
 ## Funcionalidades
 
-- **Escaneo real del código de barras** con la cámara (EAN-13 y UPC-A). La app busca el código en Discogs y muestra todas las ediciones en vinilo que lo tienen, para elegir la propia. Sirve para cualquier vinilo cargado en Discogs.
+- **Escaneo real del código de barras** con la cámara (EAN-13, UPC-A, EAN-8 y UPC-E). La app busca el código en Discogs y muestra todas las ediciones en vinilo que lo tienen, para elegir la propia. Sirve para cualquier vinilo cargado en Discogs.
 - **Datos y tapas originales de Discogs**: título, artista, país, sello, formato, tracklist, puntaje de la comunidad y la tapa de cada edición.
 - **Registro del hallazgo con GPS**: al agregar un disco se guarda dónde y cuándo lo encontraste ("Encontrado en San Telmo, CABA").
 - **Mapa por edición**: el detalle de cada disco muestra el país de esa edición.
 - **Colección personal** guardada en el backend, con una copia en el teléfono para verla sin conexión.
 - **Reseñas por prensado**, de 1 a 5 estrellas, compartidas entre teléfonos. En el perfil, cada disco aparece con su reseña.
 - **Ranking** de coleccionistas y perfiles públicos.
-- **Login y registro** contra el backend, con email o usuario y contraseña. La sesión queda guardada en el dispositivo.
-- **Validaciones** en el login, el registro, la carga manual de códigos (incluye el dígito verificador) y las reseñas. El backend repite las del login y el registro.
+- **Login y registro** contra el backend, con email o usuario y contraseña. Las contraseñas se guardan con hash y cada sesión tiene su token, que la app manda en cada pedido. La sesión queda guardada en el dispositivo.
+- **Búsqueda** por artista, álbum o sello entre los discos que ya están en el teléfono, y por código de barras en Discogs.
+- **Validaciones** en el login, el registro, la carga manual de códigos (incluye el dígito verificador) y las reseñas. El backend vuelve a validar todo lo que recibe: login, registro, reseñas, hallazgos, códigos e ids.
 - **Idioma** castellano / inglés y **tema** claro / oscuro / según el sistema, desde Ajustes.
 
 ## Componentes nativos
@@ -39,12 +40,13 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 ```
 App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de Discogs
                               │
-                              └── SQLite (Prisma): usuarios, colecciones, hallazgos, reseñas
-                                                   y caché de ediciones
+                              └── SQLite (Prisma): usuarios, sesiones, colecciones, hallazgos, reseñas
+                                                   y réplica de Discogs (ediciones y búsquedas)
 ```
 
 - La app nunca le habla a Discogs: el token de Discogs vive solo en `backend/.env`, que no está en el repo.
-- El backend guarda cada edición consultada durante 6 horas (el máximo que permiten los términos de uso de Discogs), para no gastar el límite de 60 pedidos por minuto.
+- El backend guarda una réplica de lo que ya le pidió a Discogs (ediciones con su tracklist y búsquedas por código) durante 6 horas, el máximo que permiten los términos de uso de Discogs. Así no pide dos veces lo mismo ni gasta el límite de 60 pedidos por minuto. La app pide el catálogo y cada escaneo en un solo pedido.
+- Las rutas que escriben (reseñas y colección) están en `/api/yo/...` y toman el usuario del token de sesión, nunca de la URL.
 - La app encuentra sola al backend: usa la IP de la PC donde corre Expo y el puerto 3000.
 
 ### Endpoints
@@ -56,6 +58,8 @@ Las rutas marcadas "con token" piden el header `Authorization: Bearer <token>`, 
 | GET | `/api/health` | Prueba de vida: `{"ok":true}` |
 | GET | `/api/discogs/barcode/:code` | Ediciones en vinilo con ese código de barras |
 | GET | `/api/discogs/releases/:id` | Una edición de Discogs, con su tapa |
+| GET | `/api/ediciones?codigo=` | Las ediciones en vinilo con ese código de barras, completas, en una sola respuesta. La búsqueda y cada edición salen de la réplica si tienen menos de 6 horas |
+| GET | `/api/ediciones?ids=` | Varias ediciones por número de release (`?ids=1517028,15527003`, hasta 50), en ese orden y en una sola respuesta. Las que no existen se omiten |
 | POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 con `{ usuario, token }` o 401 |
 | POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201 con `{ usuario, token }`, 400 o 409 |
 | GET | `/api/yo` | Con token: el usuario dueño de la sesión. 401 sin token, con uno inválido o vencido |
@@ -86,6 +90,8 @@ npm run dev
 Para comprobarlo: `curl localhost:3000/api/health` tiene que responder `{"ok":true}`.
 
 Si `dev.db` es de una versión anterior y el login de las cuentas de prueba da 401 (por ejemplo, porque las contraseñas pasaron a guardarse con hash), borrar `backend/prisma/dev.db` y volver a correr `npm run db:init`.
+
+`npm audit` en `backend/` da 0 vulnerabilidades. `backend/package.json` fuerza `deepmerge-ts` 8 con `overrides`: Prisma 6 trae la 7, que tiene la falla CVE-2026-40345. Esa dependencia solo la usa la CLI de Prisma para leer `prisma.config.ts`, que el backend no tiene, y la versión 8 se probó con `prisma validate`, `generate` y `db push`. La alternativa que propone `npm audit fix --force` es pasar a Prisma 7, una versión mayor que cambia la configuración.
 
 **2. App**, desde la raíz del repo (no desde `backend/`):
 
@@ -139,10 +145,13 @@ backend/        Servidor Express: rutas, cliente de Discogs, usuarios, coleccion
 - **Token sin cifrar en el teléfono.** La app guarda el token en AsyncStorage. En producción iría en el almacenamiento seguro del sistema (Keychain en iOS, Keystore en Android).
 - **Backend local.** La app solo funciona con el backend corriendo en una computadora de la misma red Wi-Fi.
 - **Sin conexión, solo lectura.** Sin backend se ven la colección, las reseñas y el ranking guardados en el teléfono, pero no se pueden agregar discos ni escribir reseñas.
+- **Búsqueda por texto solo en el teléfono.** Por artista, álbum o sello se busca entre los discos ya cargados, no en Discogs. Para identificar un disco se usa el código de barras, que da la edición exacta.
 
 ## Discogs
 
 Los datos y las tapas de los discos vienen de Discogs.
+
+El backend guarda una réplica de lo que ya consultó (ediciones con su tracklist y búsquedas por código) para no pedir dos veces lo mismo. Los términos de uso de Discogs no permiten mostrar datos con más de 6 horas, así que lo que pasa ese tiempo se vuelve a pedir y el backend lo borra cada 15 minutos.
 
 This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.
 
