@@ -37,14 +37,13 @@ flowchart LR
 
 **Un arreglo urgente sobre lo entregado** va igual: rama desde `dev`, pull request a `dev` y, enseguida, de `dev` a `main`.
 
-Un pull request hace una sola cosa. Si toca la app y el backend por motivos distintos, mejor dos.
+Un pull request hace una sola cosa. El backend está en otro repo ([sleeve-backend](https://github.com/feis9/sleeve-backend)): si un cambio toca la API, van dos pull requests, uno en cada repo, y cada descripción linkea al otro. Se fusiona primero el del backend.
 
 ## Antes de pedir revisión
 
 - Desde la raíz, `npx tsc --noEmit` y `npx expo lint` pasan sin errores.
-- Si se tocó `backend/`, desde `backend/`, `npx tsc --noEmit` también pasa.
 - Lo nuevo se probó en un teléfono con Expo Go. La cámara y el GPS no andan en el simulador.
-- Ningún token ni credencial real fuera de `backend/.env`, que no se sube. Revisar `git diff --cached` antes de cada commit.
+- Ningún token ni credencial real fuera del `.env` del backend, que no se sube. Revisar `git diff --cached` antes de cada commit.
 - Cada texto nuevo de la app está en castellano y en inglés (`constants/translations.ts`).
 
 ## Commits

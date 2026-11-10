@@ -20,7 +20,7 @@ export function validateIdentifier(value: string, m: Messages): string | null {
   return USERNAME_RE.test(v) ? null : m.usernameInvalid;
 }
 
-// Registro: mismas reglas que backend/src/usuarios.ts.
+// Registro: mismas reglas que src/usuarios.ts de sleeve-backend.
 export function validateName(value: string, m: Messages): string | null {
   const v = value.trim();
   if (!v) return m.nameRequired;

@@ -32,7 +32,7 @@ Prototipo interactivo navegable, con las mismas pantallas, datos y paleta de la 
 ## Tecnologías
 
 - **App**: Expo SDK 58 · React Native · TypeScript · Expo Router · React Context · AsyncStorage · react-native-maps.
-- **Backend** (`backend/`): Node.js · Express · Prisma 6 · SQLite · TypeScript.
+- **Backend** ([sleeve-backend](https://github.com/feis9/sleeve-backend)): Node.js · Express · Prisma 6 · SQLite · TypeScript.
 - **Datos de los discos**: [API de Discogs](https://www.discogs.com/developers), consultada desde el backend.
 
 ## Arquitectura
@@ -44,56 +44,33 @@ App (Expo Go)  ──HTTP──>  Backend (Express)  ──HTTPS──>  API de 
                                                    y réplica de Discogs (ediciones y búsquedas)
 ```
 
-- La app nunca le habla a Discogs: el token de Discogs vive solo en `backend/.env`, que no está en el repo.
+- La app nunca le habla a Discogs: el token de Discogs vive solo en el `.env` del backend, que no está en ningún repo.
 - El backend guarda una réplica de lo que ya le pidió a Discogs (ediciones con su tracklist y búsquedas por código) durante 6 horas, el máximo que permiten los términos de uso de Discogs. Así no pide dos veces lo mismo ni gasta el límite de 60 pedidos por minuto. La app pide el catálogo y cada escaneo en un solo pedido.
 - Las rutas que escriben (reseñas y colección) están en `/api/yo/...` y toman el usuario del token de sesión, nunca de la URL.
-- La app encuentra sola al backend: usa la IP de la PC donde corre Expo y el puerto 3000.
+- La app encuentra sola al backend: usa la IP de la PC donde corre Expo y el puerto 3000. Por eso el backend corre en la misma PC que la app.
 
 ### Endpoints
 
-Las rutas marcadas "con token" piden el header `Authorization: Bearer <token>`, con el token que devuelven el login y el registro.
-
-| Método | Ruta | Qué hace |
-| --- | --- | --- |
-| GET | `/api/health` | Prueba de vida: `{"ok":true}` |
-| GET | `/api/discogs/barcode/:code` | Ediciones en vinilo con ese código de barras |
-| GET | `/api/discogs/releases/:id` | Una edición de Discogs, con su tapa |
-| GET | `/api/ediciones?codigo=` | Las ediciones en vinilo con ese código de barras, completas, en una sola respuesta. La búsqueda y cada edición salen de la réplica si tienen menos de 6 horas |
-| GET | `/api/ediciones?ids=` | Varias ediciones por número de release (`?ids=1517028,15527003`, hasta 50), en ese orden y en una sola respuesta. Las que no existen se omiten |
-| POST | `/api/login` | `{ identifier, password }`: usuario o email. 200 con `{ usuario, token }` o 401 |
-| POST | `/api/registro` | `{ username, email, name, password }`. Guarda el hash de la contraseña, nunca la contraseña. 201 con `{ usuario, token }`, 400 o 409 |
-| GET | `/api/yo` | Con token: el usuario dueño de la sesión. 401 sin token, con uno inválido o vencido |
-| DELETE | `/api/sesion` | Con token: cierra esa sesión (204). Después el token ya no sirve |
-| GET | `/api/resenas` | Reseñas con su autor. Filtros opcionales `?releaseId=` y `?usuarioId=` |
-| PUT | `/api/yo/resenas/:releaseId` | Con token. `{ rating, body }`: crea o reemplaza tu reseña para esa edición |
-| GET | `/api/usuarios/:id` | Perfil público (sin email ni contraseña) |
-| GET | `/api/usuarios/:id/coleccion` | Discos de la colección, con dónde se encontró cada uno |
-| PUT | `/api/yo/coleccion/:releaseId` | Con token. Agrega el disco a tu colección |
-| PUT | `/api/yo/coleccion/:releaseId/hallazgo` | Con token. `{ latitude, longitude, place, date }`: dónde lo encontraste |
-| DELETE | `/api/yo/coleccion/:releaseId` | Con token. Saca el disco de tu colección (204) |
-| GET | `/api/ranking` | Usuarios ordenados por cantidad de discos |
+Están documentados en el README de [sleeve-backend](https://github.com/feis9/sleeve-backend#endpoints). Las rutas que escriben piden el header `Authorization: Bearer <token>`, con el token que devuelven el login y el registro.
 
 ## Cómo correrla
 
 Requisitos: Node.js, la app **Expo Go** (SDK 58) en el teléfono y un token personal de Discogs (https://www.discogs.com/settings/developers → "Generate new token"). La cámara y el GPS necesitan un dispositivo físico.
 
-**1. Backend**
+**1. Backend**, en su propio repo. Se clona al lado de este, y los dos tienen que correr en la misma computadora:
 
 ```bash
-cd backend
+git clone https://github.com/feis9/sleeve-backend.git
+cd sleeve-backend
 npm install
 cp .env.example .env      # y completar DISCOGS_TOKEN
 npm run db:init           # crea la base SQLite y carga las cuentas y colecciones de prueba
 npm run dev
 ```
 
-Para comprobarlo: `curl localhost:3000/api/health` tiene que responder `{"ok":true}`.
+Para comprobarlo: `curl localhost:3000/api/health` tiene que responder `{"ok":true}`. El detalle de la base y de las dependencias está en el README de sleeve-backend.
 
-Si `dev.db` es de una versión anterior y el login de las cuentas de prueba da 401 (por ejemplo, porque las contraseñas pasaron a guardarse con hash), borrar `backend/prisma/dev.db` y volver a correr `npm run db:init`.
-
-`npm audit` en `backend/` da 0 vulnerabilidades. `backend/package.json` fuerza `deepmerge-ts` 8 con `overrides`: Prisma 6 trae la 7, que tiene la falla CVE-2026-40345. Esa dependencia solo la usa la CLI de Prisma para leer `prisma.config.ts`, que el backend no tiene, y la versión 8 se probó con `prisma validate`, `generate` y `db push`. La alternativa que propone `npm audit fix --force` es pasar a Prisma 7, una versión mayor que cambia la configuración.
-
-**2. App**, desde la raíz del repo (no desde `backend/`):
+**2. App**, desde la raíz de este repo:
 
 ```bash
 npm install
@@ -129,6 +106,8 @@ Se puede escanear cualquier vinilo que esté en Discogs. Estos son los de los di
 
 ## Estructura
 
+El backend vive en otro repo ([sleeve-backend](https://github.com/feis9/sleeve-backend)).
+
 ```
 app/            Pantallas y navegación (Expo Router): tabs, escáner, detalle, perfil, ajustes
 components/     Componentes reutilizables (mapa, tarjetas, botones, login, registro, modal de reseña)
@@ -136,7 +115,6 @@ context/        Estado global: ajustes (idioma y tema), discos, sesión, colecci
 constants/      Paleta de colores, espaciados y textos en castellano e inglés
 data/           Discos de la demo (ids de Discogs) y tabla de países
 utils/          Conexión con el backend, ubicación (GPS), validaciones y formato
-backend/        Servidor Express: rutas, cliente de Discogs, usuarios, colecciones, reseñas y base SQLite con Prisma
 ```
 
 ## Limitaciones conocidas
