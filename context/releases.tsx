@@ -41,7 +41,7 @@ function conCodigo(releases: Iterable<Release>, barcode: string) {
   return [...releases].filter((r) => r.barcode !== null && normalizeBarcode(r.barcode) === codigo);
 }
 
-// Máximo de ediciones por pedido que acepta el backend (MAX_IDS en backend/src/index.ts).
+// Máximo de ediciones por pedido que acepta el backend (MAX_IDS en src/index.ts de sleeve-backend).
 const MAX_IDS = 50;
 
 // Pide varias ediciones en un solo pedido al backend (GET /api/ediciones?ids=…), en tandas de 50.

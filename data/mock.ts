@@ -1,4 +1,4 @@
-// Los discos de la demo. Usuarios, colecciones y reseñas están en el backend (backend/src/seed.ts).
+// Los discos de la demo. Usuarios, colecciones y reseñas están en el backend (src/seed.ts de sleeve-backend).
 // Ediciones de la demo, por número de release de Discogs. Título, tracklist, país y tapa los trae
 // el backend (GET /api/discogs/releases/:id). En la app, el id de cada disco es este número como texto.
 export const DEMO_RELEASE_IDS = [
