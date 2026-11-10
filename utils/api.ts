@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 
 import { conTimeout } from '@/utils/timeout';
 
-// Puerto de backend/.env (PORT).
+// Puerto del backend (PORT en el .env de sleeve-backend).
 const PUERTO = 3000;
 // Si el backend no responde en este tiempo, la app sigue con lo que tenga guardado.
 const TIMEOUT_MS = 10000;
